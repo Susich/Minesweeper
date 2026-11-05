@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Minesweeper.Storage;
 using Minesweeper.Audio;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace Minesweeper.Core
 {
@@ -96,9 +99,25 @@ namespace Minesweeper.Core
             }
 
             // F2 quick restart hotkey (FR-026, GDD 2.1.2)
-            if (Input.GetKeyDown(KeyCode.F2))
+            if (CheckF2Pressed())
             {
                 RestartGame();
+            }
+        }
+
+        private bool CheckF2Pressed()
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null && Keyboard.current.f2Key.wasPressedThisFrame)
+                return true;
+#endif
+            try
+            {
+                return Input.GetKeyDown(KeyCode.F2);
+            }
+            catch
+            {
+                return false;
             }
         }
 

@@ -7,11 +7,12 @@ namespace Minesweeper.UI
 {
     public class BoardGridView : MonoBehaviour
     {
-        [Header("Grid Container")]
+        [Header("Containers")]
         [SerializeField] private RectTransform _gridContainer;
         [SerializeField] private GridLayoutGroup _gridLayout;
+        [SerializeField] private RectTransform _consoleFrame;
 
-        [Header("Cell Prefab / Template")]
+        [Header("Cell Prefab")]
         [SerializeField] private GameObject _cellPrefab;
 
         private CellView[,] _cellViews;
@@ -50,6 +51,11 @@ namespace Minesweeper.UI
             _cellPrefab = prefab;
         }
 
+        public void SetConsoleFrame(RectTransform frame)
+        {
+            _consoleFrame = frame;
+        }
+
         private void OnGameInitialized(GameDifficulty difficulty)
         {
             BuildGrid(difficulty.Width, difficulty.Height);
@@ -78,7 +84,7 @@ namespace Minesweeper.UI
             _currentHeight = height;
             _cellViews = new CellView[width, height];
 
-            AdjustGridSize(width, height);
+            float cellSize = AdjustGridAndFrame(width, height);
 
             for (int y = 0; y < height; y++)
             {
@@ -89,35 +95,50 @@ namespace Minesweeper.UI
                     cellObj.SetActive(true);
 
                     var cellView = cellObj.GetComponent<CellView>();
-                    cellView.Initialize(x, y);
+                    cellView.Initialize(x, y, cellSize);
                     _cellViews[x, y] = cellView;
                 }
             }
         }
 
-        private void AdjustGridSize(int width, int height)
+        private float AdjustGridAndFrame(int width, int height)
         {
-            if (_gridContainer == null || _gridLayout == null) return;
-
-            // Total available display area inside HUD
-            Rect parentRect = _gridContainer.rect;
-            float availW = parentRect.width > 100 ? parentRect.width : 800f;
-            float availH = parentRect.height > 100 ? parentRect.height : 520f;
+            // Calculate optimal cell size so board is prominent, comfortable, and fits screen
+            float availW = 900f;
+            float availH = 480f;
 
             float spacing = 2f;
             float maxCellW = (availW - (spacing * (width - 1))) / width;
             float maxCellH = (availH - (spacing * (height - 1))) / height;
-            float cellSize = Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 16f, 44f);
 
-            _gridLayout.cellSize = new Vector2(cellSize, cellSize);
-            _gridLayout.spacing = new Vector2(spacing, spacing);
-            _gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            _gridLayout.constraintCount = width;
+            // Clamped: between 22 and 54 px
+            float cellSize = Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 22f, 54f);
 
-            // Center grid inside container
-            float totalW = width * cellSize + (width - 1) * spacing;
-            float totalH = height * cellSize + (height - 1) * spacing;
-            _gridContainer.sizeDelta = new Vector2(totalW, totalH);
+            if (_gridLayout != null)
+            {
+                _gridLayout.cellSize = new Vector2(cellSize, cellSize);
+                _gridLayout.spacing = new Vector2(spacing, spacing);
+                _gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                _gridLayout.constraintCount = width;
+            }
+
+            float totalGridW = width * cellSize + (width - 1) * spacing;
+            float totalGridH = height * cellSize + (height - 1) * spacing;
+
+            if (_gridContainer != null)
+            {
+                _gridContainer.sizeDelta = new Vector2(totalGridW, totalGridH);
+            }
+
+            // Dynamically adjust console frame to snugly wrap around grid (GDD 2.1.3)
+            if (_consoleFrame != null)
+            {
+                float frameW = Mathf.Max(620f, totalGridW + 48f);
+                float frameH = totalGridH + 195f; // Header telemetry 36 + Status bay 78 + Footer 32 + Margins 49
+                _consoleFrame.sizeDelta = new Vector2(frameW, frameH);
+            }
+
+            return cellSize;
         }
 
         private void OnCellUpdated(CellData cellData)

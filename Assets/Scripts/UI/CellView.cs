@@ -43,12 +43,22 @@ namespace Minesweeper.UI
         private static readonly Color Color7 = new Color(168f / 255f, 85f / 255f, 247f / 255f);    // #A855F7 Violet
         private static readonly Color Color8 = new Color(100f / 255f, 116f / 255f, 139f / 255f);   // #64748B Slate
 
-        public void Initialize(int x, int y)
+        public void Initialize(int x, int y, float cellSize = 40f)
         {
             X = x;
             Y = y;
             _isHovered = false;
             _isPressed = false;
+
+            if (_numberText != null)
+            {
+                _numberText.fontSize = Mathf.RoundToInt(cellSize * 0.58f);
+            }
+            if (_iconImage != null)
+            {
+                _iconImage.rectTransform.sizeDelta = new Vector2(cellSize * 0.7f, cellSize * 0.7f);
+            }
+
             UpdateVisuals(new CellData(x, y));
         }
 

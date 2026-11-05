@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Minesweeper.Core;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace Minesweeper.UI
 {
@@ -45,9 +48,25 @@ namespace Minesweeper.UI
         private void Update()
         {
             // Escape key toggles settings/pause or closes open modals (HI-001)
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (CheckEscapePressed())
             {
                 OnEscapePressed();
+            }
+        }
+
+        private bool CheckEscapePressed()
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                return true;
+#endif
+            try
+            {
+                return Input.GetKeyDown(KeyCode.Escape);
+            }
+            catch
+            {
+                return false;
             }
         }
 
