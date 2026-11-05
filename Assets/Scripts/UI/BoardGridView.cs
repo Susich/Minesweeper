@@ -132,16 +132,15 @@ namespace Minesweeper.UI
 
         private float AdjustGridAndFrame(int width, int height)
         {
-            // Calculate optimal cell size so board is prominent, comfortable, and fits screen
-            float availW = 1000f;
-            float availH = 450f;
-
+            // Tactical Console Deck width is fixed to 940px (reference max-w-5xl)
+            float consoleWidth = 940f;
             float spacing = 2f;
-            float maxCellW = (availW - (spacing * (width - 1))) / width;
-            float maxCellH = (availH - (spacing * (height - 1))) / height;
 
-            // Clamped: between 18 and 48 px with integer pixel snap
-            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 18f, 48f));
+            float maxCellW = (consoleWidth - 64f - (spacing * (width - 1))) / width;
+            float maxCellH = (440f - (spacing * (height - 1))) / height;
+
+            // Clamped: between 20 and 44 px with integer pixel snap
+            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 20f, 44f));
 
             if (_gridLayout != null)
             {
@@ -168,17 +167,17 @@ namespace Minesweeper.UI
                         var le = wrapperRt.GetComponent<LayoutElement>();
                         if (le != null)
                         {
-                            le.preferredHeight = totalGridH + 8f;
+                            le.preferredHeight = totalGridH + 16f;
                         }
                     }
                 }
             }
 
-            // Dynamically adjust console frame to snugly wrap around grid (GDD 2.1.3)
+            // Maintain wide command deck frame (940px)
             if (_consoleFrame != null)
             {
-                float frameW = Mathf.Max(580f, totalGridW + 48f);
-                float frameH = totalGridH + 176f; // Header telemetry 32 + Status bay 72 + Footer 28 + Padding & Margins 44
+                float frameW = Mathf.Max(consoleWidth, totalGridW + 64f);
+                float frameH = totalGridH + 212f; // Header telemetry 34 + Status bay 76 + Footer 32 + Padding & Margins 70
                 _consoleFrame.sizeDelta = new Vector2(frameW, frameH);
             }
 

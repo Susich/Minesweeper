@@ -80,121 +80,212 @@ namespace Minesweeper.Editor
             bgImg.color = new Color(11f / 255f, 15f / 255f, 25f / 255f); // #0B0F19
 
             // --- TOP NAVIGATION BAR ---
-            var topBar = CreateUIObject("TopMenuBar", canvasGo.transform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 48));
+            var topBar = CreateUIObject("TopMenuBar", canvasGo.transform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 52));
             topBar.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1f);
             topBar.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
             var topBarImg = topBar.AddComponent<Image>();
             topBarImg.color = new Color(10f / 255f, 14f / 255f, 24f / 255f, 0.98f); // #0A0E18
 
-            var hlgTop = topBar.AddComponent<HorizontalLayoutGroup>();
-            hlgTop.padding = new RectOffset(20, 20, 6, 6);
-            hlgTop.spacing = 14;
-            hlgTop.childAlignment = TextAnchor.MiddleLeft;
-            hlgTop.childControlWidth = false;
-            hlgTop.childControlHeight = true;
+            // 1. Left Group (Pinned to left)
+            var leftGroup = CreateUIObject("LeftGroup", topBar.transform, new Vector2(0, 0), new Vector2(0, 1), new Vector2(400, 0));
+            var lgRt = leftGroup.GetComponent<RectTransform>();
+            lgRt.pivot = new Vector2(0, 0.5f);
+            lgRt.anchoredPosition = new Vector2(20, 0);
+            var hlgLeft = leftGroup.AddComponent<HorizontalLayoutGroup>();
+            hlgLeft.spacing = 10;
+            hlgLeft.childAlignment = TextAnchor.MiddleLeft;
+            hlgLeft.childControlHeight = false;
+            hlgLeft.childControlWidth = false;
 
-            // Green online dot
-            var dotGo = CreateUIObject("DotIndicator", topBar.transform, Vector2.zero, Vector2.zero, new Vector2(8, 8));
-            var dotImg = dotGo.AddComponent<Image>();
-            dotImg.color = new Color(0f, 242f / 255f, 254f / 255f);
+            // Cyan online dot with pulse animation
+            CreatePulseDot(leftGroup.transform, new Color(0f, 242f / 255f, 254f / 255f), 8f);
 
-            // Title (unwrapped!)
-            var titleText = CreateText(topBar.transform, "САПЁР // CYBER-SWEEPER HUD v2.0", fontAsset, 14, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
+            // Title
+            var titleText = CreateText(leftGroup.transform, "САПЁР // CYBER-SWEEPER HUD v2.0", fontAsset, 13, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             titleText.enableWordWrapping = false;
-            var titleLe = titleText.gameObject.AddComponent<LayoutElement>();
-            titleLe.preferredWidth = 350;
 
             // System online badge
-            var badgeGo = CreateUIObject("BadgeOnline", topBar.transform, Vector2.zero, Vector2.zero, new Vector2(120, 26));
-            badgeGo.AddComponent<Image>().color = new Color(24f / 255f, 32f / 255f, 48f / 255f);
-            var badgeText = CreateText(badgeGo.transform, "[SYSTEM ONLINE]", fontAsset, 10, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
-            badgeText.alignment = TextAlignmentOptions.Center;
-            var badgeRt = badgeText.GetComponent<RectTransform>();
-            badgeRt.anchorMin = Vector2.zero;
-            badgeRt.anchorMax = Vector2.one;
-            badgeRt.offsetMin = Vector2.zero;
-            badgeRt.offsetMax = Vector2.zero;
+            var badgeGo = CreateUIObject("BadgeOnline", leftGroup.transform, Vector2.zero, Vector2.zero, new Vector2(115, 24));
+            badgeGo.AddComponent<Image>().color = new Color(28f / 255f, 34f / 255f, 48f / 255f);
+            var hlgBadge = badgeGo.AddComponent<HorizontalLayoutGroup>();
+            hlgBadge.padding = new RectOffset(6, 6, 0, 0);
+            hlgBadge.spacing = 5;
+            hlgBadge.childAlignment = TextAnchor.MiddleCenter;
+            hlgBadge.childControlHeight = false;
+            hlgBadge.childControlWidth = false;
+            CreatePulseDot(badgeGo.transform, new Color(0f, 220f / 255f, 230f / 255f), 5f);
+            var badgeText = CreateText(badgeGo.transform, "[SYSTEM ONLINE]", fontAsset, 9, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
+            badgeText.enableWordWrapping = false;
 
-            // Top Menu Tabs
-            var btnNewGame = CreateMenuTab(topBar.transform, "ИГРА", fontAsset, sBtnCyber, isPrimary: true);
-            var btnRecords = CreateMenuTab(topBar.transform, "РЕКОРДЫ", fontAsset, sBtnCyber);
-            var btnSettings = CreateMenuTab(topBar.transform, "ПАРАМЕТРЫ", fontAsset, sBtnCyber);
-            var btnRules = CreateMenuTab(topBar.transform, "СПРАВКА", fontAsset, sBtnCyber);
-            var btnAbout = CreateMenuTab(topBar.transform, "О ПРОГРАММЕ", fontAsset, sBtnCyber);
+            // 2. Center Tabs (Pinned to center)
+            var centerGroup = CreateUIObject("CenterTabs", topBar.transform, new Vector2(0.5f, 0), new Vector2(0.5f, 1), new Vector2(500, 0));
+            var cgRt = centerGroup.GetComponent<RectTransform>();
+            cgRt.pivot = new Vector2(0.5f, 0.5f);
+            cgRt.anchoredPosition = Vector2.zero;
+            var hlgCenter = centerGroup.AddComponent<HorizontalLayoutGroup>();
+            hlgCenter.spacing = 6;
+            hlgCenter.childAlignment = TextAnchor.MiddleCenter;
+            hlgCenter.childControlHeight = false;
+            hlgCenter.childControlWidth = false;
 
-            // Flexible Spacer
-            var spacer = CreateUIObject("Spacer", topBar.transform, Vector2.zero, Vector2.zero, Vector2.zero);
-            var spacerLe = spacer.AddComponent<LayoutElement>();
-            spacerLe.flexibleWidth = 1f;
+            var btnNewGame = CreateMenuTab(centerGroup.transform, "ИГРА", fontAsset, sBtnCyber, isPrimary: true);
+            var btnRecords = CreateMenuTab(centerGroup.transform, "РЕКОРДЫ", fontAsset, sBtnCyber);
+            var btnSettings = CreateMenuTab(centerGroup.transform, "ПАРАМЕТРЫ", fontAsset, sBtnCyber);
+            var btnRules = CreateMenuTab(centerGroup.transform, "СПРАВКА", fontAsset, sBtnCyber);
+            var btnAbout = CreateMenuTab(centerGroup.transform, "О ПРОГРАММЕ", fontAsset, sBtnCyber);
 
-            // Right side telemetry
-            var telemetryTop = CreateText(topBar.transform, "SEC: 0x7F-88X12 SYNCED", fontAsset, 11, FontStyles.Normal, new Color(132f / 255f, 148f / 255f, 149f / 255f));
+            // 3. Right Controls (Pinned to right)
+            var rightGroup = CreateUIObject("RightControls", topBar.transform, new Vector2(1, 0), new Vector2(1, 1), new Vector2(300, 0));
+            var rgRt = rightGroup.GetComponent<RectTransform>();
+            rgRt.pivot = new Vector2(1, 0.5f);
+            rgRt.anchoredPosition = new Vector2(-20, 0);
+            var hlgRight = rightGroup.AddComponent<HorizontalLayoutGroup>();
+            hlgRight.spacing = 10;
+            hlgRight.childAlignment = TextAnchor.MiddleRight;
+            hlgRight.childControlHeight = false;
+            hlgRight.childControlWidth = false;
+
+            var telemetryTop = CreateText(rightGroup.transform, "SEC: 0x7F-ORBIT SYNCED", fontAsset, 11, FontStyles.Normal, new Color(132f / 255f, 148f / 255f, 149f / 255f));
             telemetryTop.enableWordWrapping = false;
 
-            // Window controls
-            var btnMin = CreateSmallSquareButton(topBar.transform, "—", fontAsset);
-            var btnMax = CreateSmallSquareButton(topBar.transform, "□", fontAsset);
-            var btnClose = CreateSmallSquareButton(topBar.transform, "✕", fontAsset, new Color(255f / 255f, 0f, 85f / 255f));
+            var btnMin = CreateSmallSquareButton(rightGroup.transform, "—", fontAsset);
+            var btnMax = CreateSmallSquareButton(rightGroup.transform, "□", fontAsset);
+            var btnClose = CreateSmallSquareButton(rightGroup.transform, "✕", fontAsset, new Color(255f / 255f, 0f, 85f / 255f));
 
             // --- TACTICAL CONSOLE FRAME ---
-            var consoleFrame = CreateUIObject("TacticalConsoleFrame", canvasGo.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(620, 680));
-            consoleFrame.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -18);
+            var consoleFrame = CreateUIObject("TacticalConsoleFrame", canvasGo.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(940, 660));
+            consoleFrame.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -16);
             var cfImg = consoleFrame.AddComponent<Image>();
             cfImg.sprite = sPanelCyber;
             cfImg.type = Image.Type.Sliced;
             cfImg.color = Color.white;
 
+            // 4 Corner registration brackets
+            AddCornerBracket(consoleFrame.transform, new Vector2(0, 1), new Vector2(8, -8), new Color(0f, 242f / 255f, 254f / 255f));
+            AddCornerBracket(consoleFrame.transform, new Vector2(1, 1), new Vector2(-8, -8), new Color(0f, 242f / 255f, 254f / 255f));
+            AddCornerBracket(consoleFrame.transform, new Vector2(0, 0), new Vector2(8, 8), new Color(0f, 242f / 255f, 254f / 255f));
+            AddCornerBracket(consoleFrame.transform, new Vector2(1, 0), new Vector2(-8, 8), new Color(0f, 242f / 255f, 254f / 255f));
+
             var screenShake = consoleFrame.AddComponent<ScreenShake>();
             SetPrivateField(screenShake, "_targetTransform", consoleFrame.GetComponent<RectTransform>());
 
             var vlgConsole = consoleFrame.AddComponent<VerticalLayoutGroup>();
-            vlgConsole.padding = new RectOffset(16, 16, 12, 12);
+            vlgConsole.padding = new RectOffset(18, 18, 14, 14);
             vlgConsole.spacing = 10;
             vlgConsole.childControlWidth = true;
             vlgConsole.childControlHeight = false;
 
             // 1. Header Telemetry Strip
-            var telemStrip = CreateUIObject("HeaderTelemetryStrip", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 32));
+            var telemStrip = CreateUIObject("HeaderTelemetryStrip", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 34));
             var telemImg = telemStrip.AddComponent<Image>();
             telemImg.color = new Color(23f / 255f, 27f / 255f, 38f / 255f, 0.95f);
             var hlgTelem = telemStrip.AddComponent<HorizontalLayoutGroup>();
-            hlgTelem.padding = new RectOffset(12, 12, 4, 4);
-            hlgTelem.spacing = 15;
+            hlgTelem.padding = new RectOffset(14, 14, 0, 0);
             hlgTelem.childAlignment = TextAnchor.MiddleCenter;
+            hlgTelem.childControlWidth = false;
+            hlgTelem.childControlHeight = false;
 
-            var radarTitle = CreateText(telemStrip.transform, "DEFUSAL // MATRIX-09", fontAsset, 13, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
-            var gridDensityText = CreateText(telemStrip.transform, "GRID: 9x9 [LIGHT]", fontAsset, 11, FontStyles.Normal, new Color(0f, 220f / 255f, 230f / 255f));
-            var chanceText = CreateText(telemStrip.transform, "CHANCE: 87.7% CLEAR", fontAsset, 11, FontStyles.Normal, new Color(185f / 255f, 202f / 255f, 203f / 255f));
-            var memText = CreateText(telemStrip.transform, "MEM: 128TB LIVE", fontAsset, 11, FontStyles.Normal, new Color(132f / 255f, 148f / 255f, 149f / 255f));
+            // Left sub-strip
+            var telemLeft = CreateUIObject("TelemLeft", telemStrip.transform, Vector2.zero, Vector2.zero, new Vector2(360, 30));
+            var hlgTL = telemLeft.AddComponent<HorizontalLayoutGroup>();
+            hlgTL.spacing = 8;
+            hlgTL.childAlignment = TextAnchor.MiddleLeft;
+            hlgTL.childControlWidth = false;
+            hlgTL.childControlHeight = false;
+
+            CreatePulseDot(telemLeft.transform, new Color(0f, 242f / 255f, 254f / 255f), 6f);
+            var radarTitle = CreateText(telemLeft.transform, "DEFUSAL // MATRIX-09", fontAsset, 12, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
+            radarTitle.enableWordWrapping = false;
+
+            var densityBadge = CreateUIObject("DensityBadge", telemLeft.transform, Vector2.zero, Vector2.zero, new Vector2(120, 22));
+            densityBadge.AddComponent<Image>().color = new Color(38f / 255f, 42f / 255f, 53f / 255f);
+            var gridDensityText = CreateText(densityBadge.transform, "GRID: 9x9 [LIGHT]", fontAsset, 10, FontStyles.Bold, new Color(0f, 220f / 255f, 230f / 255f));
+            gridDensityText.alignment = TextAlignmentOptions.Center;
+            var gdRt = gridDensityText.GetComponent<RectTransform>();
+            gdRt.anchorMin = Vector2.zero; gdRt.anchorMax = Vector2.one; gdRt.offsetMin = Vector2.zero; gdRt.offsetMax = Vector2.zero;
+
+            // Spacer
+            var telemSpacer = CreateUIObject("Spacer", telemStrip.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            telemSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
+
+            // Right sub-strip
+            var telemRight = CreateUIObject("TelemRight", telemStrip.transform, Vector2.zero, Vector2.zero, new Vector2(340, 30));
+            var hlgTR = telemRight.AddComponent<HorizontalLayoutGroup>();
+            hlgTR.spacing = 14;
+            hlgTR.childAlignment = TextAnchor.MiddleRight;
+            hlgTR.childControlWidth = false;
+            hlgTR.childControlHeight = false;
+
+            CreatePulseDot(telemRight.transform, new Color(0f, 242f / 255f, 254f / 255f), 6f);
+            var chanceText = CreateText(telemRight.transform, "CHANCE: 87.7% CLEAR", fontAsset, 11, FontStyles.Normal, new Color(185f / 255f, 202f / 255f, 203f / 255f));
+            chanceText.enableWordWrapping = false;
+            var memText = CreateText(telemRight.transform, "MEM: 128TB LIVE", fontAsset, 11, FontStyles.Normal, new Color(132f / 255f, 148f / 255f, 149f / 255f));
+            memText.enableWordWrapping = false;
 
             // 2. Top Status Bar (Counters & Drone AI Core Face)
-            var statusBar = CreateUIObject("TopStatusBar", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 72));
+            var statusBar = CreateUIObject("TopStatusBar", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 76));
             var sbImg = statusBar.AddComponent<Image>();
             sbImg.color = new Color(28f / 255f, 34f / 255f, 48f / 255f, 0.95f);
             var hlgStatus = statusBar.AddComponent<HorizontalLayoutGroup>();
-            hlgStatus.padding = new RectOffset(16, 16, 6, 6);
-            hlgStatus.spacing = 15;
+            hlgStatus.padding = new RectOffset(16, 16, 0, 0);
+            hlgStatus.spacing = 14;
             hlgStatus.childAlignment = TextAnchor.MiddleCenter;
             hlgStatus.childControlWidth = false;
             hlgStatus.childControlHeight = false;
 
-            // Mine Counter Bay (Left)
-            var mineBay = CreateUIObject("MineCounterBay", statusBar.transform, Vector2.zero, Vector2.zero, new Vector2(150, 58));
+            // Left Side Group (Mine Bay + Waveform)
+            var leftStatusGroup = CreateUIObject("LeftStatusGroup", statusBar.transform, Vector2.zero, Vector2.zero, new Vector2(190, 60));
+            var hlgLSG = leftStatusGroup.AddComponent<HorizontalLayoutGroup>();
+            hlgLSG.spacing = 10;
+            hlgLSG.childAlignment = TextAnchor.MiddleLeft;
+            hlgLSG.childControlWidth = false;
+            hlgLSG.childControlHeight = false;
+
+            // Mine Counter Bay
+            var mineBay = CreateUIObject("MineCounterBay", leftStatusGroup.transform, Vector2.zero, Vector2.zero, new Vector2(130, 58));
             var mbImg = mineBay.AddComponent<Image>();
-            mbImg.color = new Color(10f / 255f, 14f / 255f, 24f / 255f, 0.95f);
+            mbImg.color = new Color(10f / 255f, 14f / 255f, 24f / 255f, 0.98f);
             var vlgMine = mineBay.AddComponent<VerticalLayoutGroup>();
-            vlgMine.padding = new RectOffset(8, 8, 2, 2);
+            vlgMine.padding = new RectOffset(8, 8, 4, 4);
+            vlgMine.spacing = 0;
             vlgMine.childAlignment = TextAnchor.MiddleCenter;
-            var mineLabel = CreateText(mineBay.transform, "MINES [REM]", fontAsset, 10, FontStyles.Bold, new Color(255f / 255f, 180f / 255f, 171f / 255f));
+            vlgMine.childControlWidth = true;
+            vlgMine.childControlHeight = true;
+            vlgMine.childForceExpandHeight = false;
+
+            var mineLabelRow = CreateUIObject("LabelRow", mineBay.transform, Vector2.zero, Vector2.zero, new Vector2(0, 16));
+            mineLabelRow.AddComponent<LayoutElement>().preferredHeight = 16;
+            var hlgMLR = mineLabelRow.AddComponent<HorizontalLayoutGroup>();
+            hlgMLR.childAlignment = TextAnchor.MiddleCenter;
+            hlgMLR.spacing = 4;
+            hlgMLR.childControlWidth = false;
+            hlgMLR.childControlHeight = false;
+            var mineLabel = CreateText(mineLabelRow.transform, "MINES [REM]", fontAsset, 10, FontStyles.Bold, new Color(255f / 255f, 180f / 255f, 171f / 255f));
+            CreatePulseDot(mineLabelRow.transform, new Color(255f / 255f, 0f, 85f / 255f), 5f);
+
             var mineCounterText = CreateText(mineBay.transform, "010", fontAsset, 28, FontStyles.Bold, new Color(255f / 255f, 75f / 255f, 75f / 255f));
+            mineCounterText.alignment = TextAlignmentOptions.Center;
+            mineCounterText.gameObject.AddComponent<LayoutElement>().preferredHeight = 34;
+
+            // Mini Waveform Visualizer (Mines Hazard)
+            CreateWaveform(leftStatusGroup.transform, new Color(255f / 255f, 75f / 255f, 75f / 255f), CyberWaveformVisualizer.WaveformMode.MinesHazard, "SIG-HZ", fontAsset);
+
+            // Center Spacer Left
+            var spacerLeft = CreateUIObject("SpacerLeft", statusBar.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            spacerLeft.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             // Center Drone AI Face Button
-            var faceBtnGo = CreateUIObject("DroneFaceButton", statusBar.transform, Vector2.zero, Vector2.zero, new Vector2(56, 56));
+            var faceBtnGo = CreateUIObject("DroneFaceButton", statusBar.transform, Vector2.zero, Vector2.zero, new Vector2(64, 64));
             var faceBtnImg = faceBtnGo.AddComponent<Image>();
             faceBtnImg.color = new Color(15f / 255f, 19f / 255f, 29f / 255f);
             var faceBtn = faceBtnGo.AddComponent<Button>();
 
-            var faceIconGo = CreateUIObject("FaceIcon", faceBtnGo.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var reticleBorder = CreateUIObject("Border", faceBtnGo.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var rbImg = reticleBorder.AddComponent<Image>();
+            rbImg.color = new Color(0f, 242f / 255f, 254f / 255f, 0.4f);
+            rbImg.raycastTarget = false;
+
+            var faceIconGo = CreateUIObject("FaceIcon", faceBtnGo.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(44, 44));
             var faceIconImg = faceIconGo.AddComponent<Image>();
             faceIconImg.sprite = sFaceNormal;
             faceIconImg.raycastTarget = false;
@@ -207,15 +298,46 @@ namespace Minesweeper.Editor
             sfb.FaceWin = sFaceWin;
             sfb.FaceDefeat = sFaceDefeat;
 
-            // Timer Bay (Right)
-            var timerBay = CreateUIObject("TimerBay", statusBar.transform, Vector2.zero, Vector2.zero, new Vector2(150, 58));
+            // Center Spacer Right
+            var spacerRight = CreateUIObject("SpacerRight", statusBar.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            spacerRight.AddComponent<LayoutElement>().flexibleWidth = 1f;
+
+            // Right Side Group (Waveform + Timer Bay)
+            var rightStatusGroup = CreateUIObject("RightStatusGroup", statusBar.transform, Vector2.zero, Vector2.zero, new Vector2(190, 60));
+            var hlgRSG = rightStatusGroup.AddComponent<HorizontalLayoutGroup>();
+            hlgRSG.spacing = 10;
+            hlgRSG.childAlignment = TextAnchor.MiddleRight;
+            hlgRSG.childControlWidth = false;
+            hlgRSG.childControlHeight = false;
+
+            // Mini Waveform Visualizer (Timer Clock)
+            CreateWaveform(rightStatusGroup.transform, new Color(0f, 242f / 255f, 254f / 255f), CyberWaveformVisualizer.WaveformMode.TimerClock, "T-CLOCK", fontAsset);
+
+            // Timer Bay
+            var timerBay = CreateUIObject("TimerBay", rightStatusGroup.transform, Vector2.zero, Vector2.zero, new Vector2(130, 58));
             var tbImg = timerBay.AddComponent<Image>();
-            tbImg.color = new Color(10f / 255f, 14f / 255f, 24f / 255f, 0.95f);
+            tbImg.color = new Color(10f / 255f, 14f / 255f, 24f / 255f, 0.98f);
             var vlgTimer = timerBay.AddComponent<VerticalLayoutGroup>();
-            vlgTimer.padding = new RectOffset(8, 8, 2, 2);
+            vlgTimer.padding = new RectOffset(8, 8, 4, 4);
+            vlgTimer.spacing = 0;
             vlgTimer.childAlignment = TextAnchor.MiddleCenter;
-            var timerLabel = CreateText(timerBay.transform, "TIMER [SEC]", fontAsset, 10, FontStyles.Bold, new Color(111f / 255f, 246f / 255f, 255f / 255f));
+            vlgTimer.childControlWidth = true;
+            vlgTimer.childControlHeight = true;
+            vlgTimer.childForceExpandHeight = false;
+
+            var timerLabelRow = CreateUIObject("LabelRow", timerBay.transform, Vector2.zero, Vector2.zero, new Vector2(0, 16));
+            timerLabelRow.AddComponent<LayoutElement>().preferredHeight = 16;
+            var hlgTLR = timerLabelRow.AddComponent<HorizontalLayoutGroup>();
+            hlgTLR.childAlignment = TextAnchor.MiddleCenter;
+            hlgTLR.spacing = 4;
+            hlgTLR.childControlWidth = false;
+            hlgTLR.childControlHeight = false;
+            var timerLabel = CreateText(timerLabelRow.transform, "TIMER [SEC]", fontAsset, 10, FontStyles.Bold, new Color(111f / 255f, 246f / 255f, 255f / 255f));
+            CreatePulseDot(timerLabelRow.transform, new Color(0f, 242f / 255f, 254f / 255f), 5f);
+
             var timerCounterText = CreateText(timerBay.transform, "000", fontAsset, 28, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
+            timerCounterText.alignment = TextAlignmentOptions.Center;
+            timerCounterText.gameObject.AddComponent<LayoutElement>().preferredHeight = 34;
 
             var headerView = statusBar.AddComponent<HeaderStatusView>();
             SetPrivateField(headerView, "_mineCounterText", mineCounterText);
@@ -223,8 +345,9 @@ namespace Minesweeper.Editor
             SetPrivateField(headerView, "_gridDensityText", gridDensityText);
             SetPrivateField(headerView, "_chanceText", chanceText);
 
-            // 3. Central Minefield Grid
+            // 3. Central Minefield Grid (Sunken Bay)
             var gridWrapper = CreateUIObject("GridWrapper", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 480));
+            gridWrapper.AddComponent<Image>().color = new Color(10f / 255f, 14f / 255f, 24f / 255f, 0.98f);
             var gridWrapperLe = gridWrapper.AddComponent<LayoutElement>();
             gridWrapperLe.preferredHeight = 480;
             gridWrapperLe.flexibleHeight = 1;
@@ -241,14 +364,29 @@ namespace Minesweeper.Editor
             boardView.SetConsoleFrame(consoleFrame.GetComponent<RectTransform>());
 
             // 4. Footer Telemetry Strip
-            var footerStrip = CreateUIObject("FooterTelemetryStrip", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 28));
+            var footerStrip = CreateUIObject("FooterTelemetryStrip", consoleFrame.transform, Vector2.zero, Vector2.zero, new Vector2(0, 32));
+            footerStrip.AddComponent<Image>().color = new Color(23f / 255f, 27f / 255f, 38f / 255f, 0.95f);
             var hlgFooter = footerStrip.AddComponent<HorizontalLayoutGroup>();
-            hlgFooter.padding = new RectOffset(8, 8, 2, 2);
-            hlgFooter.spacing = 15;
+            hlgFooter.padding = new RectOffset(14, 14, 0, 0);
             hlgFooter.childAlignment = TextAnchor.MiddleCenter;
+            hlgFooter.childControlWidth = false;
+            hlgFooter.childControlHeight = false;
 
-            var footerStatusText = CreateText(footerStrip.transform, "СЕКТОР: РАЗМИНИРОВАНИЕ // ОПЕРАЦИЯ АКТИВНА", fontAsset, 10, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
+            var footerLeft = CreateUIObject("FooterLeft", footerStrip.transform, Vector2.zero, Vector2.zero, new Vector2(380, 26));
+            var hlgFL = footerLeft.AddComponent<HorizontalLayoutGroup>();
+            hlgFL.spacing = 8;
+            hlgFL.childAlignment = TextAnchor.MiddleLeft;
+            hlgFL.childControlWidth = false;
+            hlgFL.childControlHeight = false;
+            CreatePulseDot(footerLeft.transform, new Color(0f, 242f / 255f, 254f / 255f), 6f);
+            var footerStatusText = CreateText(footerLeft.transform, "СЕКТОР: РАЗМИНИРОВАНИЕ // ОПЕРАЦИЯ АКТИВНА", fontAsset, 10, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
+            footerStatusText.enableWordWrapping = false;
+
+            var footerSpacer = CreateUIObject("Spacer", footerStrip.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            footerSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
+
             var footerHintsText = CreateText(footerStrip.transform, "[ЛКМ] ВСКРЫТИЕ  |  [ПКМ] МАРКЕР  |  [СКМ] АККОРД  |  [F2] РЕСТАРТ  |  [ESC] ПАУЗА", fontAsset, 10, FontStyles.Normal, new Color(132f / 255f, 148f / 255f, 149f / 255f));
+            footerHintsText.enableWordWrapping = false;
 
             // --- MODALS LAYER ---
             var modalsLayer = CreateUIObject("ModalsLayer", canvasGo.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -757,24 +895,86 @@ namespace Minesweeper.Editor
             return tmp;
         }
 
+        private static void AddCornerBracket(Transform parent, Vector2 anchor, Vector2 offset, Color color)
+        {
+            var corner = CreateUIObject("CornerBracket", parent, anchor, anchor, new Vector2(14, 14));
+            corner.GetComponent<RectTransform>().anchoredPosition = offset;
+            var hLine = CreateUIObject("H", corner.transform, new Vector2(anchor.x, anchor.y), new Vector2(anchor.x, anchor.y), new Vector2(14, 2));
+            hLine.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x == 0 ? 7 : -7, anchor.y == 0 ? 1 : -1);
+            hLine.AddComponent<Image>().color = color;
+            var vLine = CreateUIObject("V", corner.transform, new Vector2(anchor.x, anchor.y), new Vector2(anchor.x, anchor.y), new Vector2(2, 14));
+            vLine.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x == 0 ? 1 : -1, anchor.y == 0 ? 7 : -7);
+            vLine.AddComponent<Image>().color = color;
+        }
+
+        private static GameObject CreateWaveform(Transform parent, Color barColor, CyberWaveformVisualizer.WaveformMode mode, string labelText, TMP_FontAsset font)
+        {
+            var container = CreateUIObject("WaveformViz", parent, Vector2.zero, Vector2.zero, new Vector2(46, 52));
+            var vlg = container.AddComponent<VerticalLayoutGroup>();
+            vlg.padding = new RectOffset(2, 2, 2, 2);
+            vlg.spacing = 3;
+            vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.childControlWidth = false;
+            vlg.childControlHeight = false;
+
+            var barsRow = CreateUIObject("BarsRow", container.transform, Vector2.zero, Vector2.zero, new Vector2(42, 26));
+            var hlgBars = barsRow.AddComponent<HorizontalLayoutGroup>();
+            hlgBars.padding = new RectOffset(0, 0, 0, 0);
+            hlgBars.spacing = 3;
+            hlgBars.childAlignment = TextAnchor.LowerCenter;
+            hlgBars.childControlWidth = false;
+            hlgBars.childControlHeight = false;
+
+            float[] heights = new float[] { 8f, 18f, 12f, 22f, 10f };
+            for (int i = 0; i < 5; i++)
+            {
+                var bar = CreateUIObject($"Bar_{i}", barsRow.transform, Vector2.zero, Vector2.zero, new Vector2(4, heights[i]));
+                bar.AddComponent<Image>().color = barColor;
+            }
+
+            var viz = barsRow.AddComponent<CyberWaveformVisualizer>();
+            SetPrivateField(viz, "_mode", mode);
+            SetPrivateField(viz, "_speed", mode == CyberWaveformVisualizer.WaveformMode.MinesHazard ? 6f : 4f);
+
+            var lbl = CreateText(container.transform, labelText, font, 9, FontStyles.Bold, new Color(132f / 255f, 148f / 255f, 149f / 255f));
+            lbl.alignment = TextAlignmentOptions.Center;
+            var lblLe = lbl.gameObject.AddComponent<LayoutElement>();
+            lblLe.preferredHeight = 12;
+
+            return container;
+        }
+
+        private static GameObject CreatePulseDot(Transform parent, Color color, float size = 6f)
+        {
+            var dot = CreateUIObject("PulseDot", parent, Vector2.zero, Vector2.zero, new Vector2(size, size));
+            dot.AddComponent<Image>().color = color;
+            dot.AddComponent<CyberPulseDot>();
+            return dot;
+        }
+
         private static Button CreateMenuTab(Transform parent, string text, TMP_FontAsset font, Sprite sprite, bool isPrimary = false)
         {
-            var go = CreateUIObject("Tab_" + text, parent, Vector2.zero, Vector2.zero, new Vector2(isPrimary ? 80 : 100, 32));
+            var go = CreateUIObject("Tab_" + text, parent, Vector2.zero, Vector2.zero, new Vector2(isPrimary ? 86 : 94, 30));
             var img = go.AddComponent<Image>();
+            img.sprite = sprite;
+            img.type = Image.Type.Sliced;
             if (isPrimary)
             {
-                img.sprite = sprite;
-                img.type = Image.Type.Sliced;
-                img.color = new Color(0f, 242f / 255f, 254f / 255f, 0.35f);
+                img.color = new Color(0f, 242f / 255f, 254f / 255f, 0.4f);
             }
             else
             {
-                img.color = new Color(20f / 255f, 26f / 255f, 38f / 255f, 0.6f);
+                img.color = new Color(20f / 255f, 26f / 255f, 38f / 255f, 0.85f);
             }
 
             var btn = go.AddComponent<Button>();
+            var cb = btn.colors;
+            cb.normalColor = Color.white;
+            cb.highlightedColor = new Color(0f, 242f / 255f, 254f / 255f, 1f);
+            cb.pressedColor = new Color(0f, 200f / 255f, 220f / 255f, 1f);
+            btn.colors = cb;
 
-            var txt = CreateText(go.transform, text, font, 12, FontStyles.Bold, isPrimary ? Color.cyan : Color.white);
+            var txt = CreateText(go.transform, text, font, 11, FontStyles.Bold, isPrimary ? new Color(0f, 242f / 255f, 254f / 255f) : new Color(200f / 255f, 215f / 255f, 225f / 255f));
             txt.alignment = TextAlignmentOptions.Center;
             txt.enableWordWrapping = false;
             var rt = txt.GetComponent<RectTransform>();

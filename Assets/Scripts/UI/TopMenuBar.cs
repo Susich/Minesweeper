@@ -72,17 +72,17 @@ namespace Minesweeper.UI
 
         private void OnEscapePressed()
         {
-            if (_settingsModal != null && _settingsModal.gameObject.activeSelf)
+            if (_settingsModal != null && _settingsModal.IsOpen)
             {
                 _settingsModal.Hide();
                 return;
             }
-            if (_leaderboardsModal != null && _leaderboardsModal.gameObject.activeSelf)
+            if (_leaderboardsModal != null && _leaderboardsModal.IsOpen)
             {
                 _leaderboardsModal.Hide();
                 return;
             }
-            if (_helpAboutModal != null && _helpAboutModal.gameObject.activeSelf)
+            if (_helpAboutModal != null && _helpAboutModal.IsOpen)
             {
                 _helpAboutModal.Hide();
                 return;

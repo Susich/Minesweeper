@@ -1,4 +1,4 @@
-using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -32,6 +32,7 @@ namespace Minesweeper.UI
         private bool _isHovered = false;
         private bool _isPressed = false;
         private CellData _currentData;
+        private Coroutine _punchCoroutine;
 
         // Canonical colors from GDD & Cyberpunk HUD Design
         private static readonly Color Color1 = new Color(0f / 255f, 242f / 255f, 254f / 255f);     // #00F2FE Cyan
@@ -64,6 +65,7 @@ namespace Minesweeper.UI
             Y = y;
             _isHovered = false;
             _isPressed = false;
+            transform.localScale = Vector3.one;
 
             if (_numberText != null)
             {
@@ -79,6 +81,7 @@ namespace Minesweeper.UI
 
         public void UpdateVisuals(CellData data)
         {
+            CellState oldState = _currentData != null ? _currentData.State : CellState.Closed;
             _currentData = data;
             if (_bgImage == null) return;
 
@@ -98,6 +101,10 @@ namespace Minesweeper.UI
                     {
                         _iconImage.sprite = FlagSprite;
                         _iconImage.gameObject.SetActive(true);
+                    }
+                    if (oldState != CellState.Flagged)
+                    {
+                        TriggerPunch(1.22f, 1.0f, 0.12f);
                     }
                     break;
 
@@ -119,6 +126,11 @@ namespace Minesweeper.UI
                             _numberText.color = GetNumberColor(data.AdjacentMines);
                         }
                     }
+
+                    if (oldState == CellState.Closed)
+                    {
+                        TriggerPunch(0.82f, 1.0f, 0.14f);
+                    }
                     break;
 
                 case CellState.Exploded:
@@ -128,6 +140,7 @@ namespace Minesweeper.UI
                         _iconImage.sprite = MineSprite;
                         _iconImage.gameObject.SetActive(true);
                     }
+                    TriggerPunch(1.35f, 1.0f, 0.22f);
                     break;
 
                 case CellState.FalseFlag:
@@ -222,6 +235,7 @@ namespace Minesweeper.UI
             if (_currentData != null && _currentData.State == CellState.Closed && !_isPressed)
             {
                 _bgImage.sprite = HoverSprite;
+                TriggerPunch(1.0f, 1.05f, 0.08f);
             }
         }
 
@@ -231,7 +245,31 @@ namespace Minesweeper.UI
             if (_currentData != null && _currentData.State == CellState.Closed && !_isPressed)
             {
                 _bgImage.sprite = ClosedSprite;
+                TriggerPunch(transform.localScale.x, 1.0f, 0.08f);
             }
+        }
+
+        private void TriggerPunch(float fromScale, float toScale, float duration)
+        {
+            if (!gameObject.activeInHierarchy) return;
+            if (_punchCoroutine != null) StopCoroutine(_punchCoroutine);
+            _punchCoroutine = StartCoroutine(PunchRoutine(fromScale, toScale, duration));
+        }
+
+        private IEnumerator PunchRoutine(float fromScale, float toScale, float duration)
+        {
+            float elapsed = 0f;
+            transform.localScale = Vector3.one * fromScale;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float s = Mathf.Lerp(fromScale, toScale, Mathf.Sin(t * Mathf.PI * 0.5f));
+                transform.localScale = Vector3.one * s;
+                yield return null;
+            }
+            transform.localScale = Vector3.one * toScale;
+            _punchCoroutine = null;
         }
     }
 }

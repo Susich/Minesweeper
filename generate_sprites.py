@@ -5,27 +5,30 @@ from PIL import Image, ImageDraw, ImageFilter
 os.makedirs('Assets/Sprites', exist_ok=True)
 
 def create_cell_closed():
+    # 64x64 high-res cyber cell
     img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     
-    # Outer background
-    draw.rectangle([1, 1, 62, 62], fill=(23, 27, 38, 255), outline=(42, 52, 71, 255), width=1)
-    # Inner subtle bevel
-    draw.line([(2, 2), (61, 2)], fill=(55, 68, 92, 255), width=1)
-    draw.line([(2, 2), (2, 61)], fill=(55, 68, 92, 255), width=1)
-    draw.line([(61, 2), (61, 61)], fill=(15, 18, 26, 255), width=1)
-    draw.line([(2, 61), (61, 61)], fill=(15, 18, 26, 255), width=1)
+    # Outer background - dark cyber slate
+    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(38, 42, 53, 255), outline=(58, 73, 75, 255), width=1)
     
-    # Center tech pip
-    draw.rectangle([30, 30, 33, 33], fill=(71, 85, 105, 255))
+    # Subtle inner bevel highlight (top and left)
+    draw.line([(4, 3), (60, 3)], fill=(65, 78, 100, 200), width=1)
+    draw.line([(3, 4), (3, 60)], fill=(65, 78, 100, 200), width=1)
+    # Subtle inner bevel shadow (bottom and right)
+    draw.line([(4, 61), (60, 61)], fill=(20, 24, 33, 220), width=1)
+    draw.line([(61, 4), (61, 60)], fill=(20, 24, 33, 220), width=1)
+    
+    # Center tech pip (subtle 3x3 square)
+    draw.rectangle([30, 30, 33, 33], fill=(80, 95, 115, 255))
     draw.point((31, 31), fill=(132, 148, 149, 255))
     draw.point((32, 32), fill=(132, 148, 149, 255))
     
-    # Corner registration notches (1px ticks)
-    draw.point((5, 5), fill=(0, 242, 254, 180))
-    draw.point((58, 5), fill=(0, 242, 254, 180))
-    draw.point((5, 58), fill=(0, 242, 254, 180))
-    draw.point((58, 58), fill=(0, 242, 254, 180))
+    # 4 Corner registration micro-ticks in neon cyan
+    draw.point((5, 5), fill=(0, 242, 254, 220))
+    draw.point((58, 5), fill=(0, 242, 254, 220))
+    draw.point((5, 58), fill=(0, 242, 254, 220))
+    draw.point((58, 58), fill=(0, 242, 254, 220))
     
     img.save('Assets/Sprites/cell_closed.png')
 
@@ -33,26 +36,26 @@ def create_cell_hover():
     img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     
-    # Glowing hover background
-    draw.rectangle([1, 1, 62, 62], fill=(28, 37, 56, 255), outline=(0, 242, 254, 255), width=2)
+    # Brightened surface with neon cyan border
+    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(49, 53, 64, 255), outline=(0, 242, 254, 255), width=2)
     
-    # Corner reticle crosshair brackets
+    # Corner reticle crosshair brackets in bright cyan
     # Top-Left
-    draw.line([(3, 3), (9, 3)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(3, 3), (3, 9)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(3, 3), (11, 3)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(3, 3), (3, 11)], fill=(0, 242, 254, 255), width=2)
     # Top-Right
-    draw.line([(54, 3), (60, 3)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(60, 3), (60, 9)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(52, 3), (60, 3)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(60, 3), (60, 11)], fill=(0, 242, 254, 255), width=2)
     # Bottom-Left
-    draw.line([(3, 60), (9, 60)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(3, 54), (3, 60)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(3, 60), (11, 60)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(3, 52), (3, 60)], fill=(0, 242, 254, 255), width=2)
     # Bottom-Right
-    draw.line([(54, 60), (60, 60)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(60, 54), (60, 60)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(52, 60), (60, 60)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(60, 52), (60, 60)], fill=(0, 242, 254, 255), width=2)
     
-    # Center crosshair
-    draw.line([(30, 32), (33, 32)], fill=(0, 242, 254, 220), width=1)
-    draw.line([(32, 30), (32, 33)], fill=(0, 242, 254, 220), width=1)
+    # Center crosshair pip
+    draw.line([(29, 32), (34, 32)], fill=(0, 242, 254, 240), width=1)
+    draw.line([(32, 29), (32, 34)], fill=(0, 242, 254, 240), width=1)
     
     img.save('Assets/Sprites/cell_hover.png')
 
@@ -60,10 +63,10 @@ def create_cell_pressed():
     img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     
-    # Sunken dark tile
-    draw.rectangle([1, 1, 62, 62], fill=(10, 14, 24, 255), outline=(20, 26, 38, 255), width=1)
-    draw.line([(2, 2), (61, 2)], fill=(5, 8, 17, 255), width=1)
-    draw.line([(2, 2), (2, 61)], fill=(5, 8, 17, 255), width=1)
+    # Deep sunken dark tile
+    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(23, 27, 38, 255), outline=(15, 18, 26, 255), width=1)
+    draw.line([(3, 3), (60, 3)], fill=(10, 12, 18, 255), width=1)
+    draw.line([(3, 3), (3, 60)], fill=(10, 12, 18, 255), width=1)
     img.save('Assets/Sprites/cell_pressed.png')
 
 def create_cell_revealed():
@@ -71,12 +74,9 @@ def create_cell_revealed():
     draw = ImageDraw.Draw(img)
     
     # Flush recessed background
-    draw.rectangle([1, 1, 62, 62], fill=(14, 18, 28, 240), outline=(30, 41, 59, 200), width=1)
-    # Subtle inner corner marks
-    draw.point((3, 3), fill=(40, 50, 70, 150))
-    draw.point((60, 3), fill=(40, 50, 70, 150))
-    draw.point((3, 60), fill=(40, 50, 70, 150))
-    draw.point((60, 60), fill=(40, 50, 70, 150))
+    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(23, 27, 38, 255), outline=(35, 43, 56, 180), width=1)
+    # Very faint center pip
+    draw.point((32, 32), fill=(58, 73, 75, 120))
     
     img.save('Assets/Sprites/cell_revealed.png')
 
@@ -85,9 +85,10 @@ def create_cell_exploded():
     draw = ImageDraw.Draw(img)
     
     # Crimson detonation flash
-    draw.rectangle([1, 1, 62, 62], fill=(147, 0, 10, 255), outline=(255, 0, 85, 255), width=2)
+    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(147, 0, 10, 255), outline=(255, 0, 85, 255), width=2)
     # Bright inner hazard radiation
-    draw.ellipse([14, 14, 49, 49], fill=(239, 68, 68, 200), outline=(255, 180, 171, 255), width=1)
+    draw.ellipse([14, 14, 49, 49], fill=(239, 68, 68, 220), outline=(255, 180, 171, 255), width=1)
+    draw.ellipse([22, 22, 41, 41], fill=(255, 200, 200, 255))
     
     img.save('Assets/Sprites/cell_exploded.png')
 
@@ -96,19 +97,21 @@ def create_icon_flag():
     draw = ImageDraw.Draw(img)
     
     # Outer glow halo
-    for r in range(16, 24, 2):
-        draw.ellipse([32 - r, 32 - r, 32 + r, 32 + r], outline=(255, 0, 85, int(35 * (1 - r / 24))))
+    for r in range(16, 26, 2):
+        draw.ellipse([32 - r, 32 - r, 32 + r, 32 + r], outline=(255, 0, 85, int(40 * (1 - r / 26))))
     
     # Base stand / pod
-    draw.polygon([(20, 52), (44, 52), (37, 46), (27, 46)], fill=(58, 73, 75, 255), outline=(0, 242, 254, 255))
+    draw.polygon([(18, 52), (46, 52), (39, 46), (25, 46)], fill=(58, 73, 75, 255), outline=(0, 242, 254, 255))
     # Holographic pole
-    draw.line([(32, 14), (32, 47)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(32, 12), (32, 14)], fill=(224, 253, 255, 255), width=3)
+    draw.line([(32, 13), (32, 47)], fill=(0, 242, 254, 255), width=2)
+    draw.line([(32, 11), (32, 13)], fill=(224, 253, 255, 255), width=3)
     
-    # Cyber hazard flag banner (digital pennant / diamond)
-    draw.polygon([(32, 14), (49, 23), (32, 33)], fill=(255, 0, 85, 230), outline=(255, 180, 171, 255))
-    # Inner energy core
-    draw.polygon([(34, 19), (43, 23), (34, 27)], fill=(255, 218, 214, 255))
+    # Cyber hazard flag banner (digital pennant)
+    draw.polygon([(32, 13), (52, 23), (32, 33)], fill=(255, 0, 85, 255), outline=(255, 180, 171, 255))
+    # Inner glowing energy core
+    draw.polygon([(34, 18), (45, 23), (34, 28)], fill=(255, 230, 230, 255))
+    # Top beacon dot
+    draw.ellipse([30, 9, 34, 13], fill=(0, 242, 254, 255))
     
     img.save('Assets/Sprites/icon_flag.png')
 
@@ -122,12 +125,12 @@ def create_icon_mine():
         rad = math.radians(angle)
         x1 = cx + math.cos(rad) * 12
         y1 = cy + math.sin(rad) * 12
-        x2 = cx + math.cos(rad) * 25
-        y2 = cy + math.sin(rad) * 25
+        x2 = cx + math.cos(rad) * 26
+        y2 = cy + math.sin(rad) * 26
         draw.line([(x1, y1), (x2, y2)], fill=(255, 0, 85, 255), width=3)
         # Spike tip
-        tip_x = cx + math.cos(rad) * 26
-        tip_y = cy + math.sin(rad) * 26
+        tip_x = cx + math.cos(rad) * 27
+        tip_y = cy + math.sin(rad) * 27
         draw.ellipse([tip_x - 2, tip_y - 2, tip_x + 2, tip_y + 2], fill=(255, 180, 171, 255))
         
     # Main spherical casing
@@ -146,11 +149,11 @@ def create_icon_false_flag():
     draw = ImageDraw.Draw(img)
     
     # Bright neon red cross
-    draw.line([(14, 14), (50, 50)], fill=(255, 0, 85, 255), width=4)
-    draw.line([(14, 50), (50, 14)], fill=(255, 0, 85, 255), width=4)
+    draw.line([(12, 12), (52, 52)], fill=(255, 0, 85, 255), width=4)
+    draw.line([(12, 52), (52, 12)], fill=(255, 0, 85, 255), width=4)
     # Inner bright core line
-    draw.line([(14, 14), (50, 50)], fill=(255, 200, 200, 255), width=2)
-    draw.line([(14, 50), (50, 14)], fill=(255, 200, 200, 255), width=2)
+    draw.line([(12, 12), (52, 52)], fill=(255, 220, 220, 255), width=2)
+    draw.line([(12, 52), (52, 12)], fill=(255, 220, 220, 255), width=2)
     
     img.save('Assets/Sprites/icon_false_flag.png')
 
@@ -198,7 +201,7 @@ def create_face_win():
     draw = ImageDraw.Draw(img)
     cx, cy = 32, 32
     
-    # Outer triumphant cyan ring
+    # Outer triumphant green ring
     draw.ellipse([cx - 24, cy - 24, cx + 24, cy + 24], outline=(0, 255, 102, 255), width=2)
     draw.line([(4, cy), (8, cy)], fill=(0, 255, 102, 255), width=2)
     draw.line([(55, cy), (59, cy)], fill=(0, 255, 102, 255), width=2)
@@ -224,10 +227,8 @@ def create_face_defeat():
     draw.line([(55, cy), (59, cy)], fill=(239, 68, 68, 255), width=2)
     
     # X eyes
-    # Left eye X
     draw.line([(21, 21), (29, 29)], fill=(239, 68, 68, 255), width=2)
     draw.line([(21, 29), (29, 21)], fill=(239, 68, 68, 255), width=2)
-    # Right eye X
     draw.line([(35, 21), (43, 29)], fill=(239, 68, 68, 255), width=2)
     draw.line([(35, 29), (43, 21)], fill=(239, 68, 68, 255), width=2)
     
@@ -240,63 +241,59 @@ def create_panels_and_buttons():
     # 9-sliceable cyber panel (64x64, border 12px)
     panel = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(panel)
-    d.rectangle([2, 2, 61, 61], fill=(15, 23, 42, 240), outline=(0, 242, 254, 80), width=1)
-    # Corner registration marks
-    d.line([(2, 2), (8, 2)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 2), (2, 8)], fill=(0, 242, 254, 255), width=2)
-    d.line([(55, 2), (61, 2)], fill=(0, 242, 254, 255), width=2)
-    d.line([(61, 2), (61, 8)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 61), (8, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 55), (2, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(55, 61), (61, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(61, 55), (61, 61)], fill=(0, 242, 254, 255), width=2)
+    d.rounded_rectangle([2, 2, 61, 61], radius=6, fill=(10, 14, 24, 245), outline=(58, 73, 75, 120), width=1)
+    
+    # Corner registration brackets in neon cyan
+    d.line([(2, 2), (10, 2)], fill=(0, 242, 254, 255), width=2)
+    d.line([(2, 2), (2, 10)], fill=(0, 242, 254, 255), width=2)
+    d.line([(53, 2), (61, 2)], fill=(0, 242, 254, 255), width=2)
+    d.line([(61, 2), (61, 10)], fill=(0, 242, 254, 255), width=2)
+    d.line([(2, 61), (10, 61)], fill=(0, 242, 254, 255), width=2)
+    d.line([(2, 53), (2, 61)], fill=(0, 242, 254, 255), width=2)
+    d.line([(53, 61), (61, 61)], fill=(0, 242, 254, 255), width=2)
+    d.line([(61, 53), (61, 61)], fill=(0, 242, 254, 255), width=2)
     panel.save('Assets/Sprites/panel_cyber.png')
     
-    # Red danger panel
-    panel_red = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    d = ImageDraw.Draw(panel_red)
-    d.rectangle([2, 2, 61, 61], fill=(20, 10, 16, 245), outline=(255, 0, 85, 120), width=1)
-    d.line([(2, 2), (8, 2)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 2), (2, 8)], fill=(255, 0, 85, 255), width=2)
-    d.line([(55, 2), (61, 2)], fill=(255, 0, 85, 255), width=2)
-    d.line([(61, 2), (61, 8)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 61), (8, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 55), (2, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(55, 61), (61, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(61, 55), (61, 61)], fill=(255, 0, 85, 255), width=2)
-    panel_red.save('Assets/Sprites/panel_danger.png')
+    # 9-sliceable danger panel
+    panel_danger = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+    d = ImageDraw.Draw(panel_danger)
+    d.rounded_rectangle([2, 2, 61, 61], radius=6, fill=(20, 10, 14, 245), outline=(255, 0, 85, 140), width=1)
+    d.line([(2, 2), (10, 2)], fill=(255, 0, 85, 255), width=2)
+    d.line([(2, 2), (2, 10)], fill=(255, 0, 85, 255), width=2)
+    d.line([(53, 2), (61, 2)], fill=(255, 0, 85, 255), width=2)
+    d.line([(61, 2), (61, 10)], fill=(255, 0, 85, 255), width=2)
+    d.line([(2, 61), (10, 61)], fill=(255, 0, 85, 255), width=2)
+    d.line([(2, 53), (2, 61)], fill=(255, 0, 85, 255), width=2)
+    d.line([(53, 61), (61, 61)], fill=(255, 0, 85, 255), width=2)
+    d.line([(61, 53), (61, 61)], fill=(255, 0, 85, 255), width=2)
+    panel_danger.save('Assets/Sprites/panel_danger.png')
     
-    # Cyber Button
-    btn = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    d = ImageDraw.Draw(btn)
-    d.rectangle([2, 2, 61, 61], fill=(23, 27, 38, 250), outline=(0, 242, 254, 200), width=1)
-    d.line([(2, 2), (6, 2)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 2), (2, 6)], fill=(0, 242, 254, 255), width=2)
-    d.line([(57, 61), (61, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(61, 57), (61, 61)], fill=(0, 242, 254, 255), width=2)
-    btn.save('Assets/Sprites/button_cyber.png')
-
-    # Cyber Danger Button
+    # 9-sliceable cyber button (64x64, border 8px)
+    btn_cyber = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+    d = ImageDraw.Draw(btn_cyber)
+    d.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(28, 31, 42, 255), outline=(58, 73, 75, 200), width=1)
+    d.line([(2, 2), (2, 61)], fill=(0, 242, 254, 255), width=2) # Neon cyan left accent edge
+    btn_cyber.save('Assets/Sprites/button_cyber.png')
+    
+    # 9-sliceable danger button
     btn_danger = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(btn_danger)
-    d.rectangle([2, 2, 61, 61], fill=(45, 15, 22, 250), outline=(255, 0, 85, 200), width=1)
-    d.line([(2, 2), (6, 2)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 2), (2, 6)], fill=(255, 0, 85, 255), width=2)
-    d.line([(57, 61), (61, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(61, 57), (61, 61)], fill=(255, 0, 85, 255), width=2)
+    d.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(40, 15, 20, 255), outline=(255, 0, 85, 200), width=1)
+    d.line([(2, 2), (2, 61)], fill=(255, 0, 85, 255), width=2) # Neon red left accent edge
     btn_danger.save('Assets/Sprites/button_danger.png')
 
-create_cell_closed()
-create_cell_hover()
-create_cell_pressed()
-create_cell_revealed()
-create_cell_exploded()
-create_icon_flag()
-create_icon_mine()
-create_icon_false_flag()
-create_face_normal()
-create_face_alert()
-create_face_win()
-create_face_defeat()
-create_panels_and_buttons()
-print("Successfully generated all cyber UI textures!")
+if __name__ == '__main__':
+    create_cell_closed()
+    create_cell_hover()
+    create_cell_pressed()
+    create_cell_revealed()
+    create_cell_exploded()
+    create_icon_flag()
+    create_icon_mine()
+    create_icon_false_flag()
+    create_face_normal()
+    create_face_alert()
+    create_face_win()
+    create_face_defeat()
+    create_panels_and_buttons()
+    print("Successfully generated all cyber UI textures!")

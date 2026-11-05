@@ -29,6 +29,8 @@ namespace Minesweeper.UI
             if (_closeButton != null) _closeButton.onClick.AddListener(Hide);
         }
 
+        public bool IsOpen => _panel != null ? _panel.activeSelf : gameObject.activeSelf;
+
         private void Start()
         {
             Hide();
