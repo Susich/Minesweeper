@@ -15,6 +15,17 @@ namespace Minesweeper.UI
         [Header("Cell Prefab")]
         [SerializeField] private GameObject _cellPrefab;
 
+        [Header("Cell Visual Resources")]
+        public Sprite ClosedSprite;
+        public Sprite HoverSprite;
+        public Sprite PressedSprite;
+        public Sprite RevealedSprite;
+        public Sprite ExplodedSprite;
+        public Sprite FlagSprite;
+        public Sprite MineSprite;
+        public Sprite FalseFlagSprite;
+        public TMPro.TMP_FontAsset FontAsset;
+
         private CellView[,] _cellViews;
         private int _currentWidth = 0;
         private int _currentHeight = 0;
@@ -46,6 +57,19 @@ namespace Minesweeper.UI
             }
         }
 
+        public void ConfigureResources(Sprite closed, Sprite hover, Sprite pressed, Sprite revealed, Sprite exploded, Sprite flag, Sprite mine, Sprite falseFlag, TMPro.TMP_FontAsset font)
+        {
+            ClosedSprite = closed;
+            HoverSprite = hover;
+            PressedSprite = pressed;
+            RevealedSprite = revealed;
+            ExplodedSprite = exploded;
+            FlagSprite = flag;
+            MineSprite = mine;
+            FalseFlagSprite = falseFlag;
+            FontAsset = font;
+        }
+
         public void SetCellPrefab(GameObject prefab)
         {
             _cellPrefab = prefab;
@@ -64,6 +88,11 @@ namespace Minesweeper.UI
         public void BuildGrid(int width, int height)
         {
             if (_gridContainer == null) _gridContainer = GetComponent<RectTransform>();
+
+            if (_cellPrefab == null)
+            {
+                _cellPrefab = CreateCellTemplate();
+            }
 
             // Clean up existing cells
             if (_cellViews != null)
@@ -104,15 +133,15 @@ namespace Minesweeper.UI
         private float AdjustGridAndFrame(int width, int height)
         {
             // Calculate optimal cell size so board is prominent, comfortable, and fits screen
-            float availW = 900f;
-            float availH = 480f;
+            float availW = 1000f;
+            float availH = 450f;
 
             float spacing = 2f;
             float maxCellW = (availW - (spacing * (width - 1))) / width;
             float maxCellH = (availH - (spacing * (height - 1))) / height;
 
-            // Clamped: between 22 and 54 px
-            float cellSize = Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 22f, 54f);
+            // Clamped: between 18 and 48 px with integer pixel snap
+            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 18f, 48f));
 
             if (_gridLayout != null)
             {
@@ -128,13 +157,28 @@ namespace Minesweeper.UI
             if (_gridContainer != null)
             {
                 _gridContainer.sizeDelta = new Vector2(totalGridW, totalGridH);
+
+                // Adjust wrapper to wrap tightly without huge empty gaps
+                if (_gridContainer.parent != null)
+                {
+                    var wrapperRt = _gridContainer.parent.GetComponent<RectTransform>();
+                    if (wrapperRt != null)
+                    {
+                        wrapperRt.sizeDelta = new Vector2(totalGridW, totalGridH);
+                        var le = wrapperRt.GetComponent<LayoutElement>();
+                        if (le != null)
+                        {
+                            le.preferredHeight = totalGridH + 8f;
+                        }
+                    }
+                }
             }
 
             // Dynamically adjust console frame to snugly wrap around grid (GDD 2.1.3)
             if (_consoleFrame != null)
             {
-                float frameW = Mathf.Max(620f, totalGridW + 48f);
-                float frameH = totalGridH + 195f; // Header telemetry 36 + Status bay 78 + Footer 32 + Margins 49
+                float frameW = Mathf.Max(580f, totalGridW + 48f);
+                float frameH = totalGridH + 176f; // Header telemetry 32 + Status bay 72 + Footer 28 + Padding & Margins 44
                 _consoleFrame.sizeDelta = new Vector2(frameW, frameH);
             }
 
@@ -165,6 +209,50 @@ namespace Minesweeper.UI
             {
                 ScreenShake.Instance.Shake(0.4f, 15f);
             }
+        }
+
+        private GameObject CreateCellTemplate()
+        {
+            var go = new GameObject("CellTemplate", typeof(RectTransform), typeof(Image), typeof(CellView));
+            go.transform.SetParent(transform, false);
+            go.SetActive(false);
+
+            var rt = go.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(48, 48);
+
+            var img = go.GetComponent<Image>();
+            img.sprite = ClosedSprite;
+            img.type = Image.Type.Simple;
+
+            var iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconGo.transform.SetParent(go.transform, false);
+            var iconRt = iconGo.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.sizeDelta = new Vector2(32, 32);
+            var iconImg = iconGo.GetComponent<Image>();
+            iconImg.raycastTarget = false;
+            iconGo.SetActive(false);
+
+            var numGo = new GameObject("NumberText", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            numGo.transform.SetParent(go.transform, false);
+            var numRt = numGo.GetComponent<RectTransform>();
+            numRt.anchorMin = Vector2.zero;
+            numRt.anchorMax = Vector2.one;
+            numRt.offsetMin = Vector2.zero;
+            numRt.offsetMax = Vector2.zero;
+            var numTmp = numGo.GetComponent<TMPro.TextMeshProUGUI>();
+            if (FontAsset != null) numTmp.font = FontAsset;
+            numTmp.fontSize = 24;
+            numTmp.fontStyle = TMPro.FontStyles.Bold;
+            numTmp.alignment = TMPro.TextAlignmentOptions.Center;
+            numTmp.raycastTarget = false;
+            numTmp.text = "";
+
+            var cv = go.GetComponent<CellView>();
+            cv.Configure(img, iconImg, numTmp, ClosedSprite, HoverSprite, PressedSprite, RevealedSprite, ExplodedSprite, FlagSprite, MineSprite, FalseFlagSprite);
+
+            return go;
         }
     }
 }

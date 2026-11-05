@@ -43,6 +43,21 @@ namespace Minesweeper.UI
         private static readonly Color Color7 = new Color(168f / 255f, 85f / 255f, 247f / 255f);    // #A855F7 Violet
         private static readonly Color Color8 = new Color(100f / 255f, 116f / 255f, 139f / 255f);   // #64748B Slate
 
+        public void Configure(Image bg, Image icon, TextMeshProUGUI num, Sprite closed, Sprite hover, Sprite pressed, Sprite revealed, Sprite exploded, Sprite flag, Sprite mine, Sprite falseFlag)
+        {
+            _bgImage = bg;
+            _iconImage = icon;
+            _numberText = num;
+            ClosedSprite = closed;
+            HoverSprite = hover;
+            PressedSprite = pressed;
+            RevealedSprite = revealed;
+            ExplodedSprite = exploded;
+            FlagSprite = flag;
+            MineSprite = mine;
+            FalseFlagSprite = falseFlag;
+        }
+
         public void Initialize(int x, int y, float cellSize = 40f)
         {
             X = x;

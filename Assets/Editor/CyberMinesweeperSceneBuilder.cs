@@ -47,60 +47,7 @@ namespace Minesweeper.Editor
             var sBtnCyber = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/button_cyber.png");
             var sBtnDanger = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/button_danger.png");
 
-            // 2. Build Cell Prefab
-            var cellObj = new GameObject("CellView", typeof(RectTransform), typeof(Image), typeof(CellView));
-            var cellRt = cellObj.GetComponent<RectTransform>();
-            cellRt.sizeDelta = new Vector2(48, 48);
-
-            var cellImg = cellObj.GetComponent<Image>();
-            cellImg.sprite = sCellClosed;
-            cellImg.type = Image.Type.Simple;
-
-            var iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-            iconGo.transform.SetParent(cellObj.transform, false);
-            var iconRt = iconGo.GetComponent<RectTransform>();
-            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
-            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
-            iconRt.sizeDelta = new Vector2(32, 32);
-            var iconImg = iconGo.GetComponent<Image>();
-            iconImg.raycastTarget = false;
-            iconGo.SetActive(false);
-
-            var numGo = new GameObject("NumberText", typeof(RectTransform), typeof(TextMeshProUGUI));
-            numGo.transform.SetParent(cellObj.transform, false);
-            var numRt = numGo.GetComponent<RectTransform>();
-            numRt.anchorMin = Vector2.zero;
-            numRt.anchorMax = Vector2.one;
-            numRt.offsetMin = Vector2.zero;
-            numRt.offsetMax = Vector2.zero;
-            var numTmp = numGo.GetComponent<TextMeshProUGUI>();
-            if (fontAsset != null) numTmp.font = fontAsset;
-            numTmp.fontSize = 24;
-            numTmp.fontStyle = FontStyles.Bold;
-            numTmp.alignment = TextAlignmentOptions.Center;
-            numTmp.raycastTarget = false;
-            numTmp.enableWordWrapping = false;
-            numTmp.text = "";
-
-            var cv = cellObj.GetComponent<CellView>();
-            SetPrivateField(cv, "_bgImage", cellImg);
-            SetPrivateField(cv, "_iconImage", iconImg);
-            SetPrivateField(cv, "_numberText", numTmp);
-            cv.ClosedSprite = sCellClosed;
-            cv.HoverSprite = sCellHover;
-            cv.PressedSprite = sCellPressed;
-            cv.RevealedSprite = sCellRevealed;
-            cv.ExplodedSprite = sCellExploded;
-            cv.FlagSprite = sIconFlag;
-            cv.MineSprite = sIconMine;
-            cv.FalseFlagSprite = sIconFalseFlag;
-
-            string prefabPath = "Assets/Prefabs/CellViewPrefab.prefab";
-            var cellPrefab = PrefabUtility.SaveAsPrefabAsset(cellObj, prefabPath);
-            UnityEngine.Object.DestroyImmediate(cellObj);
-            Debug.Log("Created CellViewPrefab!");
-
-            // 3. Create Scene
+            // 2. Create Scene
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             // Camera
@@ -155,7 +102,7 @@ namespace Minesweeper.Editor
             var titleText = CreateText(topBar.transform, "САПЁР // CYBER-SWEEPER HUD v2.0", fontAsset, 14, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             titleText.enableWordWrapping = false;
             var titleLe = titleText.gameObject.AddComponent<LayoutElement>();
-            titleLe.preferredWidth = 275;
+            titleLe.preferredWidth = 350;
 
             // System online badge
             var badgeGo = CreateUIObject("BadgeOnline", topBar.transform, Vector2.zero, Vector2.zero, new Vector2(120, 26));
@@ -290,7 +237,7 @@ namespace Minesweeper.Editor
             SetPrivateField(boardView, "_gridContainer", gridContainerGo.GetComponent<RectTransform>());
             SetPrivateField(boardView, "_gridLayout", gridLayout);
             SetPrivateField(boardView, "_consoleFrame", consoleFrame.GetComponent<RectTransform>());
-            boardView.SetCellPrefab(cellPrefab);
+            boardView.ConfigureResources(sCellClosed, sCellHover, sCellPressed, sCellRevealed, sCellExploded, sIconFlag, sIconMine, sIconFalseFlag, fontAsset);
             boardView.SetConsoleFrame(consoleFrame.GetComponent<RectTransform>());
 
             // 4. Footer Telemetry Strip
@@ -331,6 +278,9 @@ namespace Minesweeper.Editor
             SetPrivateField(topMenuComp, "_leaderboardsModal", leaderboardsModal);
             SetPrivateField(topMenuComp, "_helpAboutModal", helpModal);
 
+            // Bind all custom scripts to their MonoScript assets (fixes missing scripts in standalone builds!)
+            BindAllCustomScriptsInScene();
+
             // Save Scene
             string scenePath = "Assets/Scenes/CyberMinesweeper.unity";
             EditorSceneManager.SaveScene(scene, scenePath);
@@ -347,8 +297,9 @@ namespace Minesweeper.Editor
 
         private static DefeatModal BuildDefeatModal(Transform parent, TMP_FontAsset font, Sprite sPanel, Sprite sBtnDanger, Sprite sBtnCyber)
         {
-            var modalRoot = CreateModalBackdrop("DefeatModal", parent);
-            var panel = CreateUIObject("Panel", modalRoot.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(500, 360));
+            var modalRoot = CreateUIObject("DefeatModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(500, 360));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -392,21 +343,22 @@ namespace Minesweeper.Editor
             var btnInspect = CreateActionButton(btnRow.transform, "АНАЛИЗ ДАННЫХ", font, sBtnCyber);
 
             var dm = modalRoot.AddComponent<DefeatModal>();
-            SetPrivateField(dm, "_panel", modalRoot);
+            SetPrivateField(dm, "_panel", backdrop);
             SetPrivateField(dm, "_pointOfFailureText", tPoint);
             SetPrivateField(dm, "_accuracyText", tAcc);
             SetPrivateField(dm, "_falseFlagsText", tFalseFlags);
             SetPrivateField(dm, "_statusText", tStatus);
             SetPrivateField(dm, "_retryButton", btnRetry);
             SetPrivateField(dm, "_inspectButton", btnInspect);
-            modalRoot.SetActive(false);
+            backdrop.SetActive(false);
             return dm;
         }
 
         private static VictoryModal BuildVictoryModal(Transform parent, TMP_FontAsset font, Sprite sPanel, Sprite sBtnCyber)
         {
-            var modalRoot = CreateModalBackdrop("VictoryModal", parent);
-            var panel = CreateUIObject("Panel", modalRoot.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(560, 440));
+            var modalRoot = CreateUIObject("VictoryModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(560, 440));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -478,7 +430,7 @@ namespace Minesweeper.Editor
             var btnMenu = CreateActionButton(btnRow.transform, "МЕНЮ", font, sBtnCyber);
 
             var vm = modalRoot.AddComponent<VictoryModal>();
-            SetPrivateField(vm, "_panel", modalRoot);
+            SetPrivateField(vm, "_panel", backdrop);
             SetPrivateField(vm, "_timeText", tTime);
             SetPrivateField(vm, "_difficultyText", tDiff);
             SetPrivateField(vm, "_accuracyText", tAcc);
@@ -488,14 +440,15 @@ namespace Minesweeper.Editor
             SetPrivateField(vm, "_saveRecordButton", btnSave);
             SetPrivateField(vm, "_newGameButton", btnNew);
             SetPrivateField(vm, "_menuButton", btnMenu);
-            modalRoot.SetActive(false);
+            backdrop.SetActive(false);
             return vm;
         }
 
         private static SettingsModal BuildSettingsModal(Transform parent, TMP_FontAsset font, Sprite sPanel, Sprite sBtnCyber)
         {
-            var modalRoot = CreateModalBackdrop("SettingsModal", parent);
-            var panel = CreateUIObject("Panel", modalRoot.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(580, 520));
+            var modalRoot = CreateUIObject("SettingsModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(580, 520));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -568,7 +521,7 @@ namespace Minesweeper.Editor
             var btnOk = CreateActionButton(btnRow.transform, "ПРИНЯТЬ ПРОТОКОЛ // OK", font, sBtnCyber);
 
             var sm = modalRoot.AddComponent<SettingsModal>();
-            SetPrivateField(sm, "_panel", modalRoot);
+            SetPrivateField(sm, "_panel", backdrop);
             SetPrivateField(sm, "_btnBeginner", btnBeg);
             SetPrivateField(sm, "_btnIntermediate", btnInt);
             SetPrivateField(sm, "_btnExpert", btnExp);
@@ -589,14 +542,15 @@ namespace Minesweeper.Editor
             SetPrivateField(sm, "_timerTickToggle", tickTgl);
             SetPrivateField(sm, "_okButton", btnOk);
             SetPrivateField(sm, "_cancelButton", btnCancel);
-            modalRoot.SetActive(false);
+            backdrop.SetActive(false);
             return sm;
         }
 
         private static LeaderboardsModal BuildLeaderboardsModal(Transform parent, TMP_FontAsset font, Sprite sPanel, Sprite sBtnCyber)
         {
-            var modalRoot = CreateModalBackdrop("LeaderboardsModal", parent);
-            var panel = CreateUIObject("Panel", modalRoot.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(600, 480));
+            var modalRoot = CreateUIObject("LeaderboardsModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(600, 480));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -663,7 +617,7 @@ namespace Minesweeper.Editor
             var btnClose = CreateActionButton(btnRow.transform, "ЗАКРЫТЬ ТАБЛИЦУ", font, sBtnCyber);
 
             var lm = modalRoot.AddComponent<LeaderboardsModal>();
-            SetPrivateField(lm, "_panel", modalRoot);
+            SetPrivateField(lm, "_panel", backdrop);
             SetPrivateField(lm, "_tabBeginner", tBeg);
             SetPrivateField(lm, "_tabIntermediate", tInt);
             SetPrivateField(lm, "_tabExpert", tExp);
@@ -673,14 +627,15 @@ namespace Minesweeper.Editor
             SetPrivateField(lm, "_bestResultText", bestTxt);
             SetPrivateField(lm, "_resetScoresButton", btnReset);
             SetPrivateField(lm, "_closeButton", btnClose);
-            modalRoot.SetActive(false);
+            backdrop.SetActive(false);
             return lm;
         }
 
         private static HelpAboutModal BuildHelpModal(Transform parent, TMP_FontAsset font, Sprite sPanel, Sprite sBtnCyber)
         {
-            var modalRoot = CreateModalBackdrop("HelpAboutModal", parent);
-            var panel = CreateUIObject("Panel", modalRoot.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(580, 440));
+            var modalRoot = CreateUIObject("HelpAboutModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(580, 440));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -737,14 +692,14 @@ namespace Minesweeper.Editor
             var btnClose = CreateActionButton(panel.transform, "ЗАКРЫТЬ", font, sBtnCyber);
 
             var hm = modalRoot.AddComponent<HelpAboutModal>();
-            SetPrivateField(hm, "_panel", modalRoot);
+            SetPrivateField(hm, "_panel", backdrop);
             SetPrivateField(hm, "_rulesContainer", rulesCont);
             SetPrivateField(hm, "_aboutContainer", aboutCont);
             SetPrivateField(hm, "_titleText", title);
             SetPrivateField(hm, "_tabRulesButton", tabRules);
             SetPrivateField(hm, "_tabAboutButton", tabAbout);
             SetPrivateField(hm, "_closeButton", btnClose);
-            modalRoot.SetActive(false);
+            backdrop.SetActive(false);
             return hm;
         }
 
@@ -934,6 +889,48 @@ namespace Minesweeper.Editor
             {
                 field.SetValue(target, value);
             }
+            if (target is UnityEngine.Object uo)
+            {
+                EditorUtility.SetDirty(uo);
+            }
+        }
+
+        private static void BindAllCustomScriptsInScene()
+        {
+            var allMonoBehaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            int count = 0;
+            foreach (var mb in allMonoBehaviours)
+            {
+                if (mb == null) continue;
+                Type type = mb.GetType();
+                if (type.Namespace != null && type.Namespace.StartsWith("Minesweeper"))
+                {
+                    string typeName = type.Name;
+                    string[] guids = AssetDatabase.FindAssets($"{typeName} t:MonoScript");
+                    foreach (var guid in guids)
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        if (Path.GetFileNameWithoutExtension(path) == typeName)
+                        {
+                            var ms = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+                            if (ms != null && ms.GetClass() == type)
+                            {
+                                var so = new SerializedObject(mb);
+                                var sp = so.FindProperty("m_Script");
+                                if (sp != null)
+                                {
+                                    sp.objectReferenceValue = ms;
+                                    so.ApplyModifiedPropertiesWithoutUndo();
+                                    count++;
+                                }
+                                EditorUtility.SetDirty(mb);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            Debug.Log($"Successfully bound {count} custom MonoScript references to assets!");
         }
     }
 }
