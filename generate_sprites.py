@@ -1,299 +1,304 @@
 import os
 import math
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 os.makedirs('Assets/Sprites', exist_ok=True)
 
-def create_cell_closed():
-    # 64x64 high-res cyber cell
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+def supersample_and_save(draw_fn, filepath, size=(128, 128), scale=2):
+    hires_size = (size[0] * scale, size[1] * scale)
+    img = Image.new('RGBA', hires_size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    
-    # Outer background - dark cyber slate
-    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(38, 42, 53, 255), outline=(58, 73, 75, 255), width=1)
-    
-    # Subtle inner bevel highlight (top and left)
-    draw.line([(4, 3), (60, 3)], fill=(65, 78, 100, 200), width=1)
-    draw.line([(3, 4), (3, 60)], fill=(65, 78, 100, 200), width=1)
-    # Subtle inner bevel shadow (bottom and right)
-    draw.line([(4, 61), (60, 61)], fill=(20, 24, 33, 220), width=1)
-    draw.line([(61, 4), (61, 60)], fill=(20, 24, 33, 220), width=1)
-    
-    # Center tech pip (subtle 3x3 square)
-    draw.rectangle([30, 30, 33, 33], fill=(80, 95, 115, 255))
-    draw.point((31, 31), fill=(132, 148, 149, 255))
-    draw.point((32, 32), fill=(132, 148, 149, 255))
-    
-    # 4 Corner registration micro-ticks in neon cyan
-    draw.point((5, 5), fill=(0, 242, 254, 220))
-    draw.point((58, 5), fill=(0, 242, 254, 220))
-    draw.point((5, 58), fill=(0, 242, 254, 220))
-    draw.point((58, 58), fill=(0, 242, 254, 220))
-    
-    img.save('Assets/Sprites/cell_closed.png')
+    draw_fn(draw, hires_size[0], hires_size[1], scale)
+    out = img.resize(size, Image.Resampling.LANCZOS)
+    out.save(filepath)
 
-def create_cell_hover():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    # Brightened surface with neon cyan border
-    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(49, 53, 64, 255), outline=(0, 242, 254, 255), width=2)
-    
-    # Corner reticle crosshair brackets in bright cyan
-    # Top-Left
-    draw.line([(3, 3), (11, 3)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(3, 3), (3, 11)], fill=(0, 242, 254, 255), width=2)
-    # Top-Right
-    draw.line([(52, 3), (60, 3)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(60, 3), (60, 11)], fill=(0, 242, 254, 255), width=2)
-    # Bottom-Left
-    draw.line([(3, 60), (11, 60)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(3, 52), (3, 60)], fill=(0, 242, 254, 255), width=2)
-    # Bottom-Right
-    draw.line([(52, 60), (60, 60)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(60, 52), (60, 60)], fill=(0, 242, 254, 255), width=2)
-    
-    # Center crosshair pip
-    draw.line([(29, 32), (34, 32)], fill=(0, 242, 254, 240), width=1)
-    draw.line([(32, 29), (32, 34)], fill=(0, 242, 254, 240), width=1)
-    
-    img.save('Assets/Sprites/cell_hover.png')
+def draw_cell_closed(d, w, h, s):
+    radius = 8 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(30, 38, 56, 255), outline=(46, 59, 82, 255), width=2*s)
+    d.line([(radius + 2*s, 4*s), (w - radius - 2*s, 4*s)], fill=(55, 70, 96, 180), width=1*s)
+    cx, cy = w // 2, h // 2
+    r_pip = 2.5 * s
+    d.ellipse([cx - r_pip, cy - r_pip, cx + r_pip, cy + r_pip], fill=(80, 95, 120, 255))
 
-def create_cell_pressed():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    # Deep sunken dark tile
-    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(23, 27, 38, 255), outline=(15, 18, 26, 255), width=1)
-    draw.line([(3, 3), (60, 3)], fill=(10, 12, 18, 255), width=1)
-    draw.line([(3, 3), (3, 60)], fill=(10, 12, 18, 255), width=1)
-    img.save('Assets/Sprites/cell_pressed.png')
+def draw_cell_hover(d, w, h, s):
+    radius = 8 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(44, 56, 78, 255), outline=(0, 242, 254, 255), width=3*s)
+    c_len = 10 * s
+    d.line([(4*s, 8*s), (4*s + c_len, 8*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(8*s, 4*s), (8*s, 4*s + c_len)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(w - 4*s - c_len, 8*s), (w - 4*s, 8*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(w - 8*s, 4*s), (w - 8*s, 4*s + c_len)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(4*s, h - 8*s), (4*s + c_len, h - 8*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(8*s, h - 4*s - c_len), (8*s, h - 4*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(w - 4*s - c_len, h - 8*s), (w - 4*s, h - 8*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(w - 8*s, h - 4*s - c_len), (w - 8*s, h - 4*s)], fill=(0, 242, 254, 255), width=2*s)
+    cx, cy = w // 2, h // 2
+    r_pip = 3 * s
+    d.ellipse([cx - r_pip, cy - r_pip, cx + r_pip, cy + r_pip], fill=(0, 242, 254, 255))
 
-def create_cell_revealed():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    # Flush recessed background
-    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(23, 27, 38, 255), outline=(35, 43, 56, 180), width=1)
-    # Very faint center pip
-    draw.point((32, 32), fill=(58, 73, 75, 120))
-    
-    img.save('Assets/Sprites/cell_revealed.png')
+def draw_cell_pressed(d, w, h, s):
+    radius = 8 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(20, 26, 39, 255), outline=(15, 20, 30, 255), width=2*s)
+    d.line([(radius, 3*s), (w - radius, 3*s)], fill=(10, 14, 22, 255), width=2*s)
+    d.line([(3*s, radius), (3*s, h - radius)], fill=(10, 14, 22, 255), width=2*s)
 
-def create_cell_exploded():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    # Crimson detonation flash
-    draw.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(147, 0, 10, 255), outline=(255, 0, 85, 255), width=2)
-    # Bright inner hazard radiation
-    draw.ellipse([14, 14, 49, 49], fill=(239, 68, 68, 220), outline=(255, 180, 171, 255), width=1)
-    draw.ellipse([22, 22, 41, 41], fill=(255, 200, 200, 255))
-    
-    img.save('Assets/Sprites/cell_exploded.png')
+def draw_cell_revealed(d, w, h, s):
+    radius = 8 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(18, 24, 36, 255), outline=(26, 34, 51, 200), width=1*s)
+    cx, cy = w // 2, h // 2
+    d.ellipse([cx - 1.5*s, cy - 1.5*s, cx + 1.5*s, cy + 1.5*s], fill=(40, 50, 70, 140))
 
-def create_icon_flag():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    # Outer glow halo
-    for r in range(16, 26, 2):
-        draw.ellipse([32 - r, 32 - r, 32 + r, 32 + r], outline=(255, 0, 85, int(40 * (1 - r / 26))))
-    
-    # Base stand / pod
-    draw.polygon([(18, 52), (46, 52), (39, 46), (25, 46)], fill=(58, 73, 75, 255), outline=(0, 242, 254, 255))
-    # Holographic pole
-    draw.line([(32, 13), (32, 47)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(32, 11), (32, 13)], fill=(224, 253, 255, 255), width=3)
-    
-    # Cyber hazard flag banner (digital pennant)
-    draw.polygon([(32, 13), (52, 23), (32, 33)], fill=(255, 0, 85, 255), outline=(255, 180, 171, 255))
-    # Inner glowing energy core
-    draw.polygon([(34, 18), (45, 23), (34, 28)], fill=(255, 230, 230, 255))
-    # Top beacon dot
-    draw.ellipse([30, 9, 34, 13], fill=(0, 242, 254, 255))
-    
-    img.save('Assets/Sprites/icon_flag.png')
+def draw_cell_exploded(d, w, h, s):
+    radius = 8 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(127, 29, 29, 255), outline=(239, 68, 68, 255), width=3*s)
+    cx, cy = w // 2, h // 2
+    d.ellipse([cx - 24*s, cy - 24*s, cx + 24*s, cy + 24*s], fill=(220, 38, 38, 200))
+    d.ellipse([cx - 14*s, cy - 14*s, cx + 14*s, cy + 14*s], fill=(254, 202, 202, 255))
 
-def create_icon_mine():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    cx, cy = 32, 32
-    # 8 radiating detonator spikes
-    for angle in range(0, 360, 45):
-        rad = math.radians(angle)
-        x1 = cx + math.cos(rad) * 12
-        y1 = cy + math.sin(rad) * 12
-        x2 = cx + math.cos(rad) * 26
-        y2 = cy + math.sin(rad) * 26
-        draw.line([(x1, y1), (x2, y2)], fill=(255, 0, 85, 255), width=3)
-        # Spike tip
-        tip_x = cx + math.cos(rad) * 27
-        tip_y = cy + math.sin(rad) * 27
-        draw.ellipse([tip_x - 2, tip_y - 2, tip_x + 2, tip_y + 2], fill=(255, 180, 171, 255))
-        
-    # Main spherical casing
-    draw.ellipse([cx - 15, cy - 15, cx + 15, cy + 15], fill=(23, 27, 38, 255), outline=(0, 242, 254, 255), width=2)
-    # Inner telemetry ring
-    draw.ellipse([cx - 9, cy - 9, cx + 9, cy + 9], fill=(15, 19, 29, 255), outline=(245, 158, 11, 255), width=1)
-    # Core detonator LED
-    draw.ellipse([cx - 5, cy - 5, cx + 5, cy + 5], fill=(255, 0, 85, 255))
-    draw.ellipse([cx - 2, cy - 2, cx + 2, cy + 2], fill=(255, 255, 255, 255))
-    
-    img.save('Assets/Sprites/icon_mine.png')
+def draw_icon_flag(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    staff_x = cx - 8 * s
+    d.line([(staff_x, cy - 24*s), (staff_x, cy + 22*s)], fill=(160, 175, 195, 255), width=3*s)
+    d.line([(staff_x - 6*s, cy + 22*s), (staff_x + 6*s, cy + 22*s)], fill=(160, 175, 195, 255), width=3*s)
+    pennant = [
+        (staff_x + 2*s, cy - 22*s),
+        (staff_x + 24*s, cy - 11*s),
+        (staff_x + 2*s, cy)
+    ]
+    d.polygon(pennant, fill=(255, 75, 110, 255))
+    d.ellipse([staff_x + 22*s, cy - 13*s, staff_x + 26*s, cy - 9*s], fill=(255, 200, 220, 255))
 
-def create_icon_false_flag():
-    # Base is flag
-    img = Image.open('Assets/Sprites/icon_flag.png').copy()
-    draw = ImageDraw.Draw(img)
-    
-    # Bright neon red cross
-    draw.line([(12, 12), (52, 52)], fill=(255, 0, 85, 255), width=4)
-    draw.line([(12, 52), (52, 12)], fill=(255, 0, 85, 255), width=4)
-    # Inner bright core line
-    draw.line([(12, 12), (52, 52)], fill=(255, 220, 220, 255), width=2)
-    draw.line([(12, 52), (52, 12)], fill=(255, 220, 220, 255), width=2)
-    
-    img.save('Assets/Sprites/icon_false_flag.png')
+def draw_icon_mine(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_core = 16 * s
+    r_spike = 24 * s
+    for angle_deg in range(0, 360, 45):
+        rad = math.radians(angle_deg)
+        x1 = cx + math.cos(rad) * (r_core - 2*s)
+        y1 = cy + math.sin(rad) * (r_core - 2*s)
+        x2 = cx + math.cos(rad) * r_spike
+        y2 = cy + math.sin(rad) * r_spike
+        d.line([(x1, y1), (x2, y2)], fill=(200, 215, 230, 255), width=3*s)
+        d.ellipse([x2 - 2*s, y2 - 2*s, x2 + 2*s, y2 + 2*s], fill=(0, 242, 254, 255))
+    d.ellipse([cx - r_core, cy - r_core, cx + r_core, cy + r_core], fill=(24, 30, 42, 255), outline=(130, 150, 175, 255), width=2*s)
+    d.ellipse([cx - 7*s, cy - 7*s, cx + 7*s, cy + 7*s], fill=(255, 0, 85, 255))
+    d.ellipse([cx - 3*s, cy - 3*s, cx + 3*s, cy + 3*s], fill=(255, 200, 200, 255))
 
-def create_face_normal():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    cx, cy = 32, 32
-    
-    # Outer cyan glow ring
-    draw.ellipse([cx - 24, cy - 24, cx + 24, cy + 24], outline=(0, 242, 254, 255), width=2)
-    # Side antenna nodes
-    draw.line([(4, cy), (8, cy)], fill=(0, 242, 254, 255), width=2)
-    draw.line([(55, cy), (59, cy)], fill=(0, 242, 254, 255), width=2)
-    
-    # Eyes (glowing cyan pips)
-    draw.ellipse([22, 22, 28, 28], fill=(0, 242, 254, 255))
-    draw.ellipse([36, 22, 42, 28], fill=(0, 242, 254, 255))
-    
-    # Friendly cyber smile arc
-    draw.arc([22, 26, 42, 44], start=10, end=170, fill=(0, 242, 254, 255), width=3)
-    
-    img.save('Assets/Sprites/face_normal.png')
+def draw_icon_false_flag(d, w, h, s):
+    draw_icon_flag(d, w, h, s)
+    cx, cy = w // 2, h // 2
+    d.line([(cx - 14*s, cy - 14*s), (cx + 14*s, cy + 14*s)], fill=(255, 0, 85, 255), width=4*s)
+    d.line([(cx - 14*s, cy + 14*s), (cx + 14*s, cy - 14*s)], fill=(255, 0, 85, 255), width=4*s)
 
-def create_face_alert():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    cx, cy = 32, 32
-    
-    # Outer amber glow ring
-    draw.ellipse([cx - 24, cy - 24, cx + 24, cy + 24], outline=(245, 158, 11, 255), width=2)
-    draw.line([(4, cy), (8, cy)], fill=(245, 158, 11, 255), width=2)
-    draw.line([(55, cy), (59, cy)], fill=(245, 158, 11, 255), width=2)
-    
-    # Wide eyes
-    draw.ellipse([21, 21, 29, 29], fill=(245, 158, 11, 255))
-    draw.ellipse([35, 21, 43, 29], fill=(245, 158, 11, 255))
-    
-    # 'O' mouth
-    draw.ellipse([27, 34, 37, 44], outline=(245, 158, 11, 255), width=3)
-    
-    img.save('Assets/Sprites/face_alert.png')
+def draw_face_normal(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_orb = 24 * s
+    d.ellipse([cx - r_orb, cy - r_orb, cx + r_orb, cy + r_orb], fill=(10, 37, 48, 255), outline=(0, 242, 254, 255), width=2*s)
+    d.line([(cx - r_orb - 5*s, cy), (cx - r_orb + 2*s, cy)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(cx + r_orb - 2*s, cy), (cx + r_orb + 5*s, cy)], fill=(0, 242, 254, 255), width=2*s)
+    d.ellipse([cx - 9*s, cy - 8*s, cx - 4*s, cy - 3*s], fill=(0, 242, 254, 255))
+    d.ellipse([cx + 4*s, cy - 8*s, cx + 9*s, cy - 3*s], fill=(0, 242, 254, 255))
+    d.arc([cx - 11*s, cy - 4*s, cx + 11*s, cy + 13*s], start=20, end=160, fill=(0, 242, 254, 255), width=2*s)
 
-def create_face_win():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    cx, cy = 32, 32
-    
-    # Outer triumphant green ring
-    draw.ellipse([cx - 24, cy - 24, cx + 24, cy + 24], outline=(0, 255, 102, 255), width=2)
-    draw.line([(4, cy), (8, cy)], fill=(0, 255, 102, 255), width=2)
-    draw.line([(55, cy), (59, cy)], fill=(0, 255, 102, 255), width=2)
-    
-    # Cool sunglasses / cyber visor
-    draw.polygon([(18, 22), (46, 22), (42, 32), (34, 32), (32, 27), (30, 32), (22, 32)], fill=(0, 242, 254, 255), outline=(224, 253, 255, 255))
-    # Visor reflection stripe
-    draw.line([(22, 25), (42, 25)], fill=(255, 255, 255, 200), width=1)
-    
-    # Wide triumphant grin
-    draw.arc([22, 28, 42, 44], start=10, end=170, fill=(0, 255, 102, 255), width=3)
-    
-    img.save('Assets/Sprites/face_win.png')
+def draw_face_alert(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_orb = 24 * s
+    d.ellipse([cx - r_orb, cy - r_orb, cx + r_orb, cy + r_orb], fill=(10, 37, 48, 255), outline=(0, 242, 254, 255), width=2*s)
+    d.line([(cx - r_orb - 5*s, cy), (cx - r_orb + 2*s, cy)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(cx + r_orb - 2*s, cy), (cx + r_orb + 5*s, cy)], fill=(0, 242, 254, 255), width=2*s)
+    d.ellipse([cx - 10*s, cy - 10*s, cx - 3*s, cy - 3*s], fill=(0, 242, 254, 255))
+    d.ellipse([cx + 3*s, cy - 10*s, cx + 10*s, cy - 3*s], fill=(0, 242, 254, 255))
+    d.ellipse([cx - 5*s, cy + 3*s, cx + 5*s, cy + 13*s], fill=(0, 242, 254, 255))
 
-def create_face_defeat():
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    cx, cy = 32, 32
-    
-    # Outer critical red ring
-    draw.ellipse([cx - 24, cy - 24, cx + 24, cy + 24], outline=(239, 68, 68, 255), width=2)
-    draw.line([(4, cy), (8, cy)], fill=(239, 68, 68, 255), width=2)
-    draw.line([(55, cy), (59, cy)], fill=(239, 68, 68, 255), width=2)
-    
-    # X eyes
-    draw.line([(21, 21), (29, 29)], fill=(239, 68, 68, 255), width=2)
-    draw.line([(21, 29), (29, 21)], fill=(239, 68, 68, 255), width=2)
-    draw.line([(35, 21), (43, 29)], fill=(239, 68, 68, 255), width=2)
-    draw.line([(35, 29), (43, 21)], fill=(239, 68, 68, 255), width=2)
-    
-    # Glitch frown
-    draw.arc([22, 36, 42, 50], start=190, end=350, fill=(239, 68, 68, 255), width=3)
-    
-    img.save('Assets/Sprites/face_defeat.png')
+def draw_face_win(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_orb = 24 * s
+    d.ellipse([cx - r_orb, cy - r_orb, cx + r_orb, cy + r_orb], fill=(12, 45, 55, 255), outline=(0, 242, 254, 255), width=3*s)
+    visor = [
+        (cx - 14*s, cy - 9*s),
+        (cx + 14*s, cy - 9*s),
+        (cx + 11*s, cy - 1*s),
+        (cx - 11*s, cy - 1*s)
+    ]
+    d.polygon(visor, fill=(0, 242, 254, 255))
+    d.arc([cx - 12*s, cy - 2*s, cx + 12*s, cy + 14*s], start=15, end=165, fill=(0, 242, 254, 255), width=3*s)
 
-def create_panels_and_buttons():
-    # 9-sliceable cyber panel (64x64, border 12px)
-    panel = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    d = ImageDraw.Draw(panel)
-    d.rounded_rectangle([2, 2, 61, 61], radius=6, fill=(10, 14, 24, 245), outline=(58, 73, 75, 120), width=1)
-    
-    # Corner registration brackets in neon cyan
-    d.line([(2, 2), (10, 2)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 2), (2, 10)], fill=(0, 242, 254, 255), width=2)
-    d.line([(53, 2), (61, 2)], fill=(0, 242, 254, 255), width=2)
-    d.line([(61, 2), (61, 10)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 61), (10, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(2, 53), (2, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(53, 61), (61, 61)], fill=(0, 242, 254, 255), width=2)
-    d.line([(61, 53), (61, 61)], fill=(0, 242, 254, 255), width=2)
-    panel.save('Assets/Sprites/panel_cyber.png')
-    
-    # 9-sliceable danger panel
-    panel_danger = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    d = ImageDraw.Draw(panel_danger)
-    d.rounded_rectangle([2, 2, 61, 61], radius=6, fill=(20, 10, 14, 245), outline=(255, 0, 85, 140), width=1)
-    d.line([(2, 2), (10, 2)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 2), (2, 10)], fill=(255, 0, 85, 255), width=2)
-    d.line([(53, 2), (61, 2)], fill=(255, 0, 85, 255), width=2)
-    d.line([(61, 2), (61, 10)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 61), (10, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(2, 53), (2, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(53, 61), (61, 61)], fill=(255, 0, 85, 255), width=2)
-    d.line([(61, 53), (61, 61)], fill=(255, 0, 85, 255), width=2)
-    panel_danger.save('Assets/Sprites/panel_danger.png')
-    
-    # 9-sliceable cyber button (64x64, border 8px)
-    btn_cyber = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    d = ImageDraw.Draw(btn_cyber)
-    d.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(28, 31, 42, 255), outline=(58, 73, 75, 200), width=1)
-    d.line([(2, 2), (2, 61)], fill=(0, 242, 254, 255), width=2) # Neon cyan left accent edge
-    btn_cyber.save('Assets/Sprites/button_cyber.png')
-    
-    # 9-sliceable danger button
-    btn_danger = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-    d = ImageDraw.Draw(btn_danger)
-    d.rounded_rectangle([1, 1, 62, 62], radius=4, fill=(40, 15, 20, 255), outline=(255, 0, 85, 200), width=1)
-    d.line([(2, 2), (2, 61)], fill=(255, 0, 85, 255), width=2) # Neon red left accent edge
-    btn_danger.save('Assets/Sprites/button_danger.png')
+def draw_face_defeat(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_orb = 24 * s
+    d.ellipse([cx - r_orb, cy - r_orb, cx + r_orb, cy + r_orb], fill=(45, 15, 20, 255), outline=(255, 0, 85, 255), width=3*s)
+    d.line([(cx - 11*s, cy - 9*s), (cx - 5*s, cy - 3*s)], fill=(255, 0, 85, 255), width=2*s)
+    d.line([(cx - 11*s, cy - 3*s), (cx - 5*s, cy - 9*s)], fill=(255, 0, 85, 255), width=2*s)
+    d.line([(cx + 5*s, cy - 9*s), (cx + 11*s, cy - 3*s)], fill=(255, 0, 85, 255), width=2*s)
+    d.line([(cx + 5*s, cy - 3*s), (cx + 11*s, cy - 9*s)], fill=(255, 0, 85, 255), width=2*s)
+    d.line([(cx - 10*s, cy + 9*s), (cx - 4*s, cy + 6*s)], fill=(255, 0, 85, 255), width=2*s)
+    d.line([(cx - 4*s, cy + 6*s), (cx + 3*s, cy + 11*s)], fill=(255, 0, 85, 255), width=2*s)
+    d.line([(cx + 3*s, cy + 11*s), (cx + 10*s, cy + 7*s)], fill=(255, 0, 85, 255), width=2*s)
+
+def draw_face_pause(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_orb = 24 * s
+    d.ellipse([cx - r_orb, cy - r_orb, cx + r_orb, cy + r_orb], fill=(15, 25, 40, 255), outline=(245, 158, 11, 255), width=2*s)
+    d.line([(cx - 10*s, cy - 5*s), (cx - 3*s, cy - 5*s)], fill=(245, 158, 11, 255), width=2*s)
+    d.line([(cx + 3*s, cy - 5*s), (cx + 10*s, cy - 5*s)], fill=(245, 158, 11, 255), width=2*s)
+    d.line([(cx + 14*s, cy - 16*s), (cx + 20*s, cy - 16*s)], fill=(245, 158, 11, 255), width=1*s)
+    d.line([(cx + 20*s, cy - 16*s), (cx + 14*s, cy - 10*s)], fill=(245, 158, 11, 255), width=1*s)
+    d.line([(cx + 14*s, cy - 10*s), (cx + 20*s, cy - 10*s)], fill=(245, 158, 11, 255), width=1*s)
+    d.line([(cx - 5*s, cy + 7*s), (cx + 5*s, cy + 7*s)], fill=(245, 158, 11, 255), width=2*s)
+
+def draw_panel_cyber(d, w, h, s):
+    radius = 16 * s
+    d.rounded_rectangle([3*s, 3*s, w - 3*s, h - 3*s], radius=radius, fill=(18, 23, 34, 245), outline=(38, 49, 68, 255), width=2*s)
+    d.line([(radius + 4*s, 4*s), (w - radius - 4*s, 4*s)], fill=(0, 242, 254, 90), width=1*s)
+
+def draw_panel_danger(d, w, h, s):
+    radius = 16 * s
+    d.rounded_rectangle([3*s, 3*s, w - 3*s, h - 3*s], radius=radius, fill=(24, 15, 22, 248), outline=(244, 63, 94, 200), width=2*s)
+    d.line([(radius + 4*s, 4*s), (w - radius - 4*s, 4*s)], fill=(244, 63, 94, 255), width=2*s)
+
+def draw_button_cyber(d, w, h, s):
+    radius = 10 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(22, 29, 43, 255), outline=(43, 53, 72, 255), width=2*s)
+
+def draw_button_danger(d, w, h, s):
+    radius = 10 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(225, 29, 72, 255), outline=(251, 113, 133, 255), width=2*s)
+
+def draw_button_accent(d, w, h, s):
+    radius = 10 * s
+    d.rounded_rectangle([2*s, 2*s, w - 2*s, h - 2*s], radius=radius, fill=(0, 242, 254, 255), outline=(125, 248, 255, 255), width=2*s)
+
+def draw_icon_restart(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r = 16 * s
+    d.arc([cx - r, cy - r, cx + r, cy + r], start=45, end=330, fill=(0, 242, 254, 255), width=3*s)
+    rad = math.radians(45)
+    ax, ay = cx + math.cos(rad) * r, cy + math.sin(rad) * r
+    d.polygon([(ax - 2*s, ay - 6*s), (ax + 7*s, ay + 1*s), (ax - 4*s, ay + 5*s)], fill=(0, 242, 254, 255))
+
+def draw_icon_pause(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    w_bar = 5 * s
+    h_bar = 20 * s
+    d.rectangle([cx - 8*s, cy - h_bar//2, cx - 8*s + w_bar, cy + h_bar//2], fill=(224, 253, 255, 255))
+    d.rectangle([cx + 3*s, cy - h_bar//2, cx + 3*s + w_bar, cy + h_bar//2], fill=(224, 253, 255, 255))
+
+def draw_icon_play(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    pts = [(cx - 8*s, cy - 12*s), (cx + 10*s, cy), (cx - 8*s, cy + 12*s)]
+    d.polygon(pts, fill=(0, 242, 254, 255))
+
+def draw_icon_hint(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r = 14 * s
+    d.ellipse([cx - r, cy - r - 4*s, cx + r, cy + r - 4*s], fill=(245, 158, 11, 255))
+    d.rectangle([cx - 6*s, cy + 8*s, cx + 6*s, cy + 15*s], fill=(160, 175, 195, 255))
+    d.line([(cx - 4*s, cy + 17*s), (cx + 4*s, cy + 17*s)], fill=(160, 175, 195, 255), width=2*s)
+
+def draw_icon_sound_on(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    d.polygon([(cx - 14*s, cy - 6*s), (cx - 7*s, cy - 6*s), (cx + 2*s, cy - 14*s), (cx + 2*s, cy + 14*s), (cx - 7*s, cy + 6*s), (cx - 14*s, cy + 6*s)], fill=(185, 202, 203, 255))
+    d.arc([cx - 8*s, cy - 10*s, cx + 12*s, cy + 10*s], start=-50, end=50, fill=(0, 242, 254, 255), width=2*s)
+    d.arc([cx - 12*s, cy - 16*s, cx + 18*s, cy + 16*s], start=-50, end=50, fill=(0, 242, 254, 255), width=2*s)
+
+def draw_icon_sound_off(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    d.polygon([(cx - 14*s, cy - 6*s), (cx - 7*s, cy - 6*s), (cx + 2*s, cy - 14*s), (cx + 2*s, cy + 14*s), (cx - 7*s, cy + 6*s), (cx - 14*s, cy + 6*s)], fill=(130, 145, 155, 255))
+    d.line([(cx + 6*s, cy - 10*s), (cx + 18*s, cy + 10*s)], fill=(244, 63, 94, 255), width=3*s)
+    d.line([(cx + 18*s, cy - 10*s), (cx + 6*s, cy + 10*s)], fill=(244, 63, 94, 255), width=3*s)
+
+def draw_icon_fullscreen(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    sz = 14 * s
+    d_tick = 6 * s
+    d.line([(cx - sz, cy - sz + d_tick), (cx - sz, cy - sz), (cx - sz + d_tick, cy - sz)], fill=(185, 202, 203, 255), width=2*s)
+    d.line([(cx + sz - d_tick, cy - sz), (cx + sz, cy - sz), (cx + sz, cy - sz + d_tick)], fill=(185, 202, 203, 255), width=2*s)
+    d.line([(cx - sz, cy + sz - d_tick), (cx - sz, cy + sz), (cx - sz + d_tick, cy + sz)], fill=(185, 202, 203, 255), width=2*s)
+    d.line([(cx + sz - d_tick, cy + sz), (cx + sz, cy + sz), (cx + sz, cy + sz - d_tick)], fill=(185, 202, 203, 255), width=2*s)
+
+def draw_icon_settings(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    r_core = 8 * s
+    r_gear = 15 * s
+    for i in range(6):
+        ang = math.radians(i * 60)
+        x = cx + math.cos(ang) * r_gear
+        y = cy + math.sin(ang) * r_gear
+        d.ellipse([x - 3.5*s, y - 3.5*s, x + 3.5*s, y + 3.5*s], fill=(185, 202, 203, 255))
+    d.ellipse([cx - (r_gear - 2*s), cy - (r_gear - 2*s), cx + (r_gear - 2*s), cy + (r_gear - 2*s)], fill=(185, 202, 203, 255))
+    d.ellipse([cx - r_core, cy - r_core, cx + r_core, cy + r_core], fill=(11, 14, 23, 255))
+
+def draw_icon_gamepad(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    d.rounded_rectangle([cx - 20*s, cy - 10*s, cx + 20*s, cy + 10*s], radius=8*s, fill=(0, 242, 254, 255))
+    d.line([(cx - 13*s, cy), (cx - 7*s, cy)], fill=(11, 14, 23, 255), width=2*s)
+    d.line([(cx - 10*s, cy - 3*s), (cx - 10*s, cy + 3*s)], fill=(11, 14, 23, 255), width=2*s)
+    d.ellipse([cx + 6*s, cy - 4*s, cx + 10*s, cy], fill=(11, 14, 23, 255))
+    d.ellipse([cx + 10*s, cy, cx + 14*s, cy + 4*s], fill=(11, 14, 23, 255))
+
+def draw_icon_warning(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    pts = [(cx, cy - 18*s), (cx + 18*s, cy + 14*s), (cx - 18*s, cy + 14*s)]
+    d.polygon(pts, fill=(244, 63, 94, 255))
+    d.line([(cx, cy - 7*s), (cx, cy + 4*s)], fill=(255, 255, 255, 255), width=3*s)
+    d.ellipse([cx - 1.8*s, cy + 7.2*s, cx + 1.8*s, cy + 10.8*s], fill=(255, 255, 255, 255))
+
+def draw_icon_check(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    d.line([(cx - 12*s, cy), (cx - 4*s, cy + 8*s), (cx + 14*s, cy - 10*s)], fill=(0, 242, 254, 255), width=4*s)
+
+def draw_icon_close(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    sz = 10 * s
+    d.line([(cx - sz, cy - sz), (cx + sz, cy + sz)], fill=(185, 202, 203, 255), width=3*s)
+    d.line([(cx - sz, cy + sz), (cx + sz, cy - sz)], fill=(185, 202, 203, 255), width=3*s)
+
+def draw_icon_leaderboard(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    d.rectangle([cx - 16*s, cy + 2*s, cx - 6*s, cy + 16*s], fill=(56, 189, 248, 255))
+    d.rectangle([cx - 5*s, cy - 8*s, cx + 5*s, cy + 16*s], fill=(0, 242, 254, 255))
+    d.rectangle([cx + 6*s, cy + 7*s, cx + 16*s, cy + 16*s], fill=(56, 189, 248, 255))
+
+def draw_icon_rules(d, w, h, s):
+    cx, cy = w // 2, h // 2
+    d.rounded_rectangle([cx - 12*s, cy - 16*s, cx + 12*s, cy + 16*s], radius=3*s, fill=(22, 29, 43, 255), outline=(0, 242, 254, 255), width=2*s)
+    d.line([(cx - 7*s, cy - 8*s), (cx + 7*s, cy - 8*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(cx - 7*s, cy - 2*s), (cx + 7*s, cy - 2*s)], fill=(0, 242, 254, 255), width=2*s)
+    d.line([(cx - 7*s, cy + 4*s), (cx + 3*s, cy + 4*s)], fill=(0, 242, 254, 255), width=2*s)
 
 if __name__ == '__main__':
-    create_cell_closed()
-    create_cell_hover()
-    create_cell_pressed()
-    create_cell_revealed()
-    create_cell_exploded()
-    create_icon_flag()
-    create_icon_mine()
-    create_icon_false_flag()
-    create_face_normal()
-    create_face_alert()
-    create_face_win()
-    create_face_defeat()
-    create_panels_and_buttons()
-    print("Successfully generated all cyber UI textures!")
+    print("Generating comprehensive cyberpunk sprites...")
+    supersample_and_save(draw_cell_closed, 'Assets/Sprites/cell_closed.png')
+    supersample_and_save(draw_cell_hover, 'Assets/Sprites/cell_hover.png')
+    supersample_and_save(draw_cell_pressed, 'Assets/Sprites/cell_pressed.png')
+    supersample_and_save(draw_cell_revealed, 'Assets/Sprites/cell_revealed.png')
+    supersample_and_save(draw_cell_exploded, 'Assets/Sprites/cell_exploded.png')
+    supersample_and_save(draw_icon_flag, 'Assets/Sprites/icon_flag.png')
+    supersample_and_save(draw_icon_mine, 'Assets/Sprites/icon_mine.png')
+    supersample_and_save(draw_icon_false_flag, 'Assets/Sprites/icon_false_flag.png')
+    supersample_and_save(draw_face_normal, 'Assets/Sprites/face_normal.png')
+    supersample_and_save(draw_face_alert, 'Assets/Sprites/face_alert.png')
+    supersample_and_save(draw_face_win, 'Assets/Sprites/face_win.png')
+    supersample_and_save(draw_face_defeat, 'Assets/Sprites/face_defeat.png')
+    supersample_and_save(draw_face_pause, 'Assets/Sprites/face_pause.png')
+    supersample_and_save(draw_panel_cyber, 'Assets/Sprites/panel_cyber.png')
+    supersample_and_save(draw_panel_danger, 'Assets/Sprites/panel_danger.png')
+    supersample_and_save(draw_button_cyber, 'Assets/Sprites/button_cyber.png')
+    supersample_and_save(draw_button_danger, 'Assets/Sprites/button_danger.png')
+    supersample_and_save(draw_button_accent, 'Assets/Sprites/button_accent.png')
+
+    supersample_and_save(draw_icon_restart, 'Assets/Sprites/icon_restart.png', (64, 64))
+    supersample_and_save(draw_icon_pause, 'Assets/Sprites/icon_pause.png', (64, 64))
+    supersample_and_save(draw_icon_play, 'Assets/Sprites/icon_play.png', (64, 64))
+    supersample_and_save(draw_icon_hint, 'Assets/Sprites/icon_hint.png', (64, 64))
+    supersample_and_save(draw_icon_sound_on, 'Assets/Sprites/icon_sound_on.png', (64, 64))
+    supersample_and_save(draw_icon_sound_off, 'Assets/Sprites/icon_sound_off.png', (64, 64))
+    supersample_and_save(draw_icon_fullscreen, 'Assets/Sprites/icon_fullscreen.png', (64, 64))
+    supersample_and_save(draw_icon_settings, 'Assets/Sprites/icon_settings.png', (64, 64))
+    supersample_and_save(draw_icon_gamepad, 'Assets/Sprites/icon_gamepad.png', (64, 64))
+    supersample_and_save(draw_icon_warning, 'Assets/Sprites/icon_warning.png', (64, 64))
+    supersample_and_save(draw_icon_check, 'Assets/Sprites/icon_check.png', (64, 64))
+    supersample_and_save(draw_icon_close, 'Assets/Sprites/icon_close.png', (64, 64))
+    supersample_and_save(draw_icon_leaderboard, 'Assets/Sprites/icon_leaderboard.png', (64, 64))
+    supersample_and_save(draw_icon_rules, 'Assets/Sprites/icon_rules.png', (64, 64))
+    print("All sprites successfully generated!")

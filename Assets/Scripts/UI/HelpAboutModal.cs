@@ -20,7 +20,12 @@ namespace Minesweeper.UI
         [Header("Buttons")]
         [SerializeField] private Button _tabRulesButton;
         [SerializeField] private Button _tabAboutButton;
+        [SerializeField] private Image _tabRulesBg;
+        [SerializeField] private Image _tabAboutBg;
         [SerializeField] private Button _closeButton;
+
+        private static readonly Color ColorActiveTab = new Color(0f, 242f / 255f, 254f / 255f, 0.25f);
+        private static readonly Color ColorInactiveTab = new Color(13f / 255f, 17f / 255f, 26f / 255f, 0.9f);
 
         private void Awake()
         {
@@ -66,6 +71,9 @@ namespace Minesweeper.UI
             if (_titleText != null) _titleText.text = "ПРАВИЛА ИГРЫ // СПРАВОЧНЫЙ МОДУЛЬ";
             if (_rulesContainer != null) _rulesContainer.SetActive(true);
             if (_aboutContainer != null) _aboutContainer.SetActive(false);
+
+            if (_tabRulesBg != null) _tabRulesBg.color = ColorActiveTab;
+            if (_tabAboutBg != null) _tabAboutBg.color = ColorInactiveTab;
         }
 
         public void ShowAbout()
@@ -73,6 +81,9 @@ namespace Minesweeper.UI
             if (_titleText != null) _titleText.text = "О ПРОГРАММЕ // ТАКТИЧЕСКИЙ САПЁР HUD";
             if (_rulesContainer != null) _rulesContainer.SetActive(false);
             if (_aboutContainer != null) _aboutContainer.SetActive(true);
+
+            if (_tabRulesBg != null) _tabRulesBg.color = ColorInactiveTab;
+            if (_tabAboutBg != null) _tabAboutBg.color = ColorActiveTab;
         }
     }
 }

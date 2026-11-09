@@ -19,6 +19,7 @@ namespace Minesweeper.Core
         public event Action<CellData> OnCellUpdated;
         public event Action<List<CellData>> OnMultipleCellsUpdated;
         public event Action<CellData> OnDetonated;
+        public event Action<CellData> OnHintGiven;
         public event Action<GameDifficulty> OnGameInitialized;
         public event Action OnBoardReset;
 
@@ -98,26 +99,118 @@ namespace Minesweeper.Core
                 }
             }
 
-            // F2 quick restart hotkey (FR-026, GDD 2.1.2)
-            if (CheckF2Pressed())
+            // F2 / Space quick restart hotkey (FR-026, GDD 2.1.2)
+            if (CheckRestartHotkeys())
             {
                 RestartGame();
             }
+
+            // Fullscreen toggle hotkey (F11)
+            if (CheckFullscreenPressed())
+            {
+                Screen.fullScreen = !Screen.fullScreen;
+            }
         }
 
-        private bool CheckF2Pressed()
+        private bool CheckRestartHotkeys()
         {
+            // Do not trigger hotkey if an input field is focused
+            if (UnityEngine.EventSystems.EventSystem.current != null && 
+                UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject != null &&
+                UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.GetComponent<TMPro.TMP_InputField>() != null)
+            {
+                return false;
+            }
+
 #if ENABLE_INPUT_SYSTEM
-            if (Keyboard.current != null && Keyboard.current.f2Key.wasPressedThisFrame)
+            if (Keyboard.current != null && (Keyboard.current.f2Key.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame))
                 return true;
 #endif
             try
             {
-                return Input.GetKeyDown(KeyCode.F2);
+                return Input.GetKeyDown(KeyCode.F2) || Input.GetKeyDown(KeyCode.Space);
             }
             catch
             {
                 return false;
+            }
+        }
+
+        private bool CheckFullscreenPressed()
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (Keyboard.current != null && Keyboard.current.f11Key.wasPressedThisFrame)
+                return true;
+#endif
+            try
+            {
+                return Input.GetKeyDown(KeyCode.F11);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public void GiveHint()
+        {
+            if (Status != GameStatus.InProgress || Board == null) return;
+
+            // Find a safe unopened cell (preferring adjacent to revealed cells)
+            CellData candidate = null;
+
+            // First pass: unopened safe cells neighboring revealed numbers
+            for (int x = 0; x < Board.Width; x++)
+            {
+                for (int y = 0; y < Board.Height; y++)
+                {
+                    var cell = Board.GetCell(x, y);
+                    if (cell.State == CellState.Revealed && cell.AdjacentMines > 0)
+                    {
+                        foreach (var n in Board.GetNeighbors(x, y))
+                        {
+                            if (n.State == CellState.Closed && !n.IsMine)
+                            {
+                                candidate = n;
+                                break;
+                            }
+                        }
+                    }
+                    if (candidate != null) break;
+                }
+                if (candidate != null) break;
+            }
+
+            // Fallback: any closed safe cell
+            if (candidate == null)
+            {
+                for (int x = 0; x < Board.Width; x++)
+                {
+                    for (int y = 0; y < Board.Height; y++)
+                    {
+                        var cell = Board.GetCell(x, y);
+                        if (cell.State == CellState.Closed && !cell.IsMine)
+                        {
+                            candidate = cell;
+                            break;
+                        }
+                    }
+                    if (candidate != null) break;
+                }
+            }
+
+            if (candidate != null)
+            {
+                // Penalty +5 seconds as per GDD 9.2
+                ElapsedTime = Mathf.Min(ElapsedTime + 5f, 999f);
+                OnTimerChanged?.Invoke(ElapsedSeconds);
+
+                OnHintGiven?.Invoke(candidate);
+
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.Play(SoundType.Click);
+                }
             }
         }
 
@@ -349,9 +442,17 @@ namespace Minesweeper.Core
             OnMultipleCellsUpdated?.Invoke(allCells);
         }
 
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus && Status == GameStatus.InProgress)
+            {
+                PauseGame();
+            }
+        }
+
         private void OnApplicationPause(bool pause)
         {
-            if (pause)
+            if (pause && Status == GameStatus.InProgress)
             {
                 PauseGame();
             }
@@ -382,8 +483,13 @@ namespace Minesweeper.Core
 
         public int RegisterHighScore(string playerName)
         {
+            // FR-023: 1 to 16 characters, trim whitespace
+            playerName = (playerName ?? "").Trim();
             if (string.IsNullOrWhiteSpace(playerName))
-                playerName = "CYBER_OPERATOR";
+                playerName = "Player";
+
+            if (playerName.Length > 16)
+                playerName = playerName.Substring(0, 16);
 
             _settings.LastPlayerName = playerName;
             _saveManager.SaveSettings(_settings);

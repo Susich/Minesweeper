@@ -13,15 +13,14 @@ namespace Minesweeper.UI
         [Header("Telemetry Texts")]
         [SerializeField] private TextMeshProUGUI _timeText;
         [SerializeField] private TextMeshProUGUI _difficultyText;
-        [SerializeField] private TextMeshProUGUI _accuracyText;
-        [SerializeField] private TextMeshProUGUI _efficiencyText;
-        [SerializeField] private GameObject _recordBanner;
+        [SerializeField] private TextMeshProUGUI _recordStatusText;
 
         [Header("Callsign Input")]
         [SerializeField] private TMP_InputField _callsignInput;
 
         [Header("Buttons")]
         [SerializeField] private Button _saveRecordButton;
+        [SerializeField] private TextMeshProUGUI _saveButtonText;
         [SerializeField] private Button _newGameButton;
         [SerializeField] private Button _menuButton;
 
@@ -30,6 +29,12 @@ namespace Minesweeper.UI
             if (_saveRecordButton != null) _saveRecordButton.onClick.AddListener(OnSaveRecordClicked);
             if (_newGameButton != null) _newGameButton.onClick.AddListener(OnNewGameClicked);
             if (_menuButton != null) _menuButton.onClick.AddListener(OnMenuClicked);
+
+            if (_callsignInput != null)
+            {
+                _callsignInput.characterLimit = 16;
+                _callsignInput.onValueChanged.AddListener(OnInputChanged);
+            }
         }
 
         private void Start()
@@ -72,27 +77,35 @@ namespace Minesweeper.UI
             if (gc != null)
             {
                 if (_timeText != null)
-                    _timeText.text = $"{gc.ElapsedTime:F2} c";
+                {
+                    _timeText.text = $"{gc.ElapsedSeconds} сек";
+                }
 
                 if (_difficultyText != null && gc.CurrentDifficulty != null)
-                    _difficultyText.text = $"{gc.CurrentDifficulty.Width}x{gc.CurrentDifficulty.Height} [{gc.CurrentDifficulty.Mines} МИН]";
-
-                if (_accuracyText != null)
-                    _accuracyText.text = $"{gc.CalculateAccuracy():F1}%";
-
-                if (_efficiencyText != null)
-                    _efficiencyText.text = $"{gc.CalculateEfficiency():F2} ЗВУ/с";
-
-                bool isEligible = gc.CheckHighScoreEligibility();
-                if (_recordBanner != null)
                 {
-                    _recordBanner.SetActive(isEligible);
+                    _difficultyText.text = $"{gc.CurrentDifficulty.Width}×{gc.CurrentDifficulty.Height} • {gc.CurrentDifficulty.Mines}м";
+                }
+
+                bool isRecord = gc.CheckHighScoreEligibility();
+                if (_recordStatusText != null)
+                {
+                    _recordStatusText.text = isRecord ? "Новый!" : "—";
+                    _recordStatusText.color = isRecord ? new Color(52f / 255f, 211f / 255f, 153f / 255f) : new Color(148f / 255f, 163f / 255f, 184f / 255f);
                 }
 
                 if (_callsignInput != null)
                 {
-                    _callsignInput.text = gc.Settings.LastPlayerName ?? "CYBER_OPERATOR";
-                    _saveRecordButton.interactable = isEligible;
+                    string last = gc.Settings.LastPlayerName;
+                    _callsignInput.text = string.IsNullOrWhiteSpace(last) ? "Игрок 1" : last;
+                }
+
+                if (_saveRecordButton != null)
+                {
+                    _saveRecordButton.interactable = true;
+                }
+                if (_saveButtonText != null)
+                {
+                    _saveButtonText.text = "Сохранить результат";
                 }
             }
         }
@@ -103,14 +116,33 @@ namespace Minesweeper.UI
             _panel.SetActive(false);
         }
 
+        private void OnInputChanged(string text)
+        {
+            if (_saveRecordButton != null)
+            {
+                // Validate non-empty per FR-023
+                _saveRecordButton.interactable = !string.IsNullOrWhiteSpace(text);
+            }
+        }
+
         private void OnSaveRecordClicked()
         {
             var gc = GameController.Instance;
             if (gc != null)
             {
-                string name = _callsignInput != null ? _callsignInput.text : "CYBER_OPERATOR";
+                string name = _callsignInput != null ? _callsignInput.text.Trim() : "Player";
+                if (string.IsNullOrWhiteSpace(name)) name = "Player";
+
                 gc.RegisterHighScore(name);
-                if (_saveRecordButton != null) _saveRecordButton.interactable = false;
+
+                if (_saveRecordButton != null)
+                {
+                    _saveRecordButton.interactable = false;
+                }
+                if (_saveButtonText != null)
+                {
+                    _saveButtonText.text = "✓ Сохранено!";
+                }
 
                 // Open Leaderboards modal
                 var lb = FindObjectOfType<LeaderboardsModal>(true);

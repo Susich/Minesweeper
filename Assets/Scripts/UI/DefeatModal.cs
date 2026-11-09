@@ -11,19 +11,21 @@ namespace Minesweeper.UI
         [SerializeField] private GameObject _panel;
 
         [Header("Telemetry Texts")]
-        [SerializeField] private TextMeshProUGUI _pointOfFailureText;
-        [SerializeField] private TextMeshProUGUI _accuracyText;
-        [SerializeField] private TextMeshProUGUI _falseFlagsText;
-        [SerializeField] private TextMeshProUGUI _statusText;
+        [SerializeField] private TextMeshProUGUI _sectorSubtitleText;
+        [SerializeField] private TextMeshProUGUI _timeStatText;
+        [SerializeField] private TextMeshProUGUI _openedPercentText;
+        [SerializeField] private TextMeshProUGUI _remainingMinesText;
 
         [Header("Buttons")]
         [SerializeField] private Button _retryButton;
         [SerializeField] private Button _inspectButton;
+        [SerializeField] private Button _menuButton;
 
         private void Awake()
         {
             if (_retryButton != null) _retryButton.onClick.AddListener(OnRetryClicked);
             if (_inspectButton != null) _inspectButton.onClick.AddListener(OnInspectClicked);
+            if (_menuButton != null) _menuButton.onClick.AddListener(OnMenuClicked);
         }
 
         private void Start()
@@ -65,34 +67,34 @@ namespace Minesweeper.UI
             var gc = GameController.Instance;
             if (gc != null)
             {
-                int detonatedX = gc.LastDetonatedCell != null ? gc.LastDetonatedCell.X : 0;
-                int detonatedY = gc.LastDetonatedCell != null ? gc.LastDetonatedCell.Y : 0;
+                int row = gc.LastDetonatedCell != null ? (gc.LastDetonatedCell.Y + 1) : 1;
+                int col = gc.LastDetonatedCell != null ? (gc.LastDetonatedCell.X + 1) : 1;
 
-                if (_pointOfFailureText != null)
-                    _pointOfFailureText.text = $"ТОЧКА РАЗРЫВА: GRID_X: {detonatedX} // Y: {detonatedY}";
-
-                if (_accuracyText != null)
-                    _accuracyText.text = $"ТОЧНОСТЬ РАЗВЕДКИ: {gc.CalculateAccuracy():F1}% (НЕУДАЧА)";
-
-                // Count false flags
-                int falseFlags = 0;
-                if (gc.Board != null)
+                if (_sectorSubtitleText != null)
                 {
-                    for (int x = 0; x < gc.Board.Width; x++)
-                    {
-                        for (int y = 0; y < gc.Board.Height; y++)
-                        {
-                            if (gc.Board.GetCell(x, y).State == CellState.FalseFlag)
-                                falseFlags++;
-                        }
-                    }
+                    _sectorSubtitleText.text = $"Сектор подорван на мине <color=#f87171><b>(ряд {row}, колонка {col})</b></color>";
                 }
 
-                if (_falseFlagsText != null)
-                    _falseFlagsText.text = $"ЛОЖНЫЕ МАРКИРОВКИ: {falseFlags} КРИТ. ОШИБОК";
+                if (_timeStatText != null)
+                {
+                    int totalSec = gc.ElapsedSeconds;
+                    int minutes = totalSec / 60;
+                    int seconds = totalSec % 60;
+                    _timeStatText.text = $"{minutes:D2}:{seconds:D2}";
+                }
 
-                if (_statusText != null)
-                    _statusText.text = "СТАТУС ИГРОКА: ПОРАЖЕНИЕ";
+                if (_openedPercentText != null && gc.Board != null)
+                {
+                    int totalSafe = (gc.Board.Width * gc.Board.Height) - gc.Board.TotalMines;
+                    float percent = totalSafe > 0 ? ((float)gc.Board.RevealedSafeCount / totalSafe) * 100f : 0f;
+                    _openedPercentText.text = $"{Mathf.Clamp(Mathf.RoundToInt(percent), 0, 100)}%";
+                }
+
+                if (_remainingMinesText != null && gc.Board != null)
+                {
+                    int rem = Mathf.Max(0, gc.Board.TotalMines - gc.Board.FlagsCount);
+                    _remainingMinesText.text = rem.ToString();
+                }
             }
         }
 
@@ -114,7 +116,12 @@ namespace Minesweeper.UI
         private void OnInspectClicked()
         {
             Hide();
-            // Field remains in Defeat state with all mines revealed for analysis
+            // Field remains in Defeat state with all mines visible for inspection
+        }
+
+        private void OnMenuClicked()
+        {
+            Hide();
         }
     }
 }

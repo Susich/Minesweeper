@@ -86,6 +86,7 @@ namespace Minesweeper.UI
             if (_bgImage == null) return;
 
             // Reset overlays
+            _bgImage.color = Color.white;
             if (_iconImage != null) _iconImage.gameObject.SetActive(false);
             if (_numberText != null) _numberText.text = "";
 
@@ -170,10 +171,24 @@ namespace Minesweeper.UI
             }
         }
 
+        private bool _isLeftDown = false;
+        private bool _isRightDown = false;
+
+        public void HighlightHint()
+        {
+            if (_bgImage != null)
+            {
+                _bgImage.sprite = HoverSprite != null ? HoverSprite : ClosedSprite;
+                _bgImage.color = new Color(251f / 255f, 191f / 255f, 36f / 255f); // Amber glow highlight
+            }
+            TriggerPunch(1.35f, 1.0f, 0.45f);
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
+                _isLeftDown = true;
                 _isPressed = true;
                 if (_currentData != null && _currentData.State == CellState.Closed)
                 {
@@ -183,6 +198,20 @@ namespace Minesweeper.UI
                         GameController.Instance.SetMouseDownOnBoard(true);
                     }
                 }
+                else if (_isRightDown && _currentData != null && _currentData.State == CellState.Revealed)
+                {
+                    // Simultaneous LMB + RMB chord (FR-010, GDD 2.1.2)
+                    GameController.Instance?.OnCellChordClick(X, Y);
+                }
+            }
+            else if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                _isRightDown = true;
+                if (_isLeftDown && _currentData != null && _currentData.State == CellState.Revealed)
+                {
+                    // Simultaneous LMB + RMB chord (FR-010, GDD 2.1.2)
+                    GameController.Instance?.OnCellChordClick(X, Y);
+                }
             }
         }
 
@@ -190,6 +219,7 @@ namespace Minesweeper.UI
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
+                _isLeftDown = false;
                 _isPressed = false;
                 if (GameController.Instance != null)
                 {
@@ -199,6 +229,10 @@ namespace Minesweeper.UI
                 {
                     _bgImage.sprite = _isHovered ? HoverSprite : ClosedSprite;
                 }
+            }
+            else if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                _isRightDown = false;
             }
         }
 

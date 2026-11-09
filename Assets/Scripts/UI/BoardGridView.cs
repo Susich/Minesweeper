@@ -38,6 +38,7 @@ namespace Minesweeper.UI
                 GameController.Instance.OnCellUpdated += OnCellUpdated;
                 GameController.Instance.OnMultipleCellsUpdated += OnMultipleCellsUpdated;
                 GameController.Instance.OnDetonated += OnDetonated;
+                GameController.Instance.OnHintGiven += OnHintGiven;
 
                 if (GameController.Instance.CurrentDifficulty != null)
                 {
@@ -54,6 +55,15 @@ namespace Minesweeper.UI
                 GameController.Instance.OnCellUpdated -= OnCellUpdated;
                 GameController.Instance.OnMultipleCellsUpdated -= OnMultipleCellsUpdated;
                 GameController.Instance.OnDetonated -= OnDetonated;
+                GameController.Instance.OnHintGiven -= OnHintGiven;
+            }
+        }
+
+        private void OnHintGiven(CellData cellData)
+        {
+            if (cellData != null && cellData.X >= 0 && cellData.X < _currentWidth && cellData.Y >= 0 && cellData.Y < _currentHeight)
+            {
+                _cellViews[cellData.X, cellData.Y]?.HighlightHint();
             }
         }
 
@@ -132,15 +142,19 @@ namespace Minesweeper.UI
 
         private float AdjustGridAndFrame(int width, int height)
         {
-            // Tactical Console Deck width is fixed to 940px (reference max-w-5xl)
-            float consoleWidth = 940f;
-            float spacing = 2f;
+            // Tactical Console Deck width is fixed to 1160px on 1920x1080 canvas
+            float consoleWidth = 1160f;
+            float spacing = 3f;
 
-            float maxCellW = (consoleWidth - 64f - (spacing * (width - 1))) / width;
-            float maxCellH = (440f - (spacing * (height - 1))) / height;
+            // Available area inside GridWrapper
+            float availW = consoleWidth - 64f; // ~1096px
+            float availH = 520f; // 520px height for grid
 
-            // Clamped: between 20 and 44 px with integer pixel snap
-            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 20f, 44f));
+            float maxCellW = (availW - (spacing * (width - 1))) / width;
+            float maxCellH = (availH - (spacing * (height - 1))) / height;
+
+            // Clamped: between 26 and 52 px with integer pixel snap for crisp rendering
+            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 26f, 52f));
 
             if (_gridLayout != null)
             {
@@ -157,7 +171,6 @@ namespace Minesweeper.UI
             {
                 _gridContainer.sizeDelta = new Vector2(totalGridW, totalGridH);
 
-                // Adjust wrapper to wrap tightly without huge empty gaps
                 if (_gridContainer.parent != null)
                 {
                     var wrapperRt = _gridContainer.parent.GetComponent<RectTransform>();
@@ -167,17 +180,17 @@ namespace Minesweeper.UI
                         var le = wrapperRt.GetComponent<LayoutElement>();
                         if (le != null)
                         {
-                            le.preferredHeight = totalGridH + 16f;
+                            le.preferredHeight = totalGridH + 24f;
                         }
                     }
                 }
             }
 
-            // Maintain wide command deck frame (940px)
+            // Maintain wide command deck frame (1160px)
             if (_consoleFrame != null)
             {
                 float frameW = Mathf.Max(consoleWidth, totalGridW + 64f);
-                float frameH = totalGridH + 212f; // Header telemetry 34 + Status bay 76 + Footer 32 + Padding & Margins 70
+                float frameH = totalGridH + 240f; // Header telemetry 38 + Status bay 84 + Footer 38 + Paddings & Margins 80
                 _consoleFrame.sizeDelta = new Vector2(frameW, frameH);
             }
 

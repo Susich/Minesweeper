@@ -18,11 +18,11 @@ public class SpriteConfigurator : AssetPostprocessor
             string fileName = Path.GetFileNameWithoutExtension(assetPath);
             if (fileName.StartsWith("panel_"))
             {
-                importer.spriteBorder = new Vector4(12, 12, 12, 12);
+                importer.spriteBorder = new Vector4(24, 24, 24, 24);
             }
             else if (fileName.StartsWith("button_"))
             {
-                importer.spriteBorder = new Vector4(8, 8, 8, 8);
+                importer.spriteBorder = new Vector4(16, 16, 16, 16);
             }
         }
     }

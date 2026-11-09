@@ -18,6 +18,12 @@ namespace Minesweeper.UI
         [SerializeField] private Button _tabExpert;
         [SerializeField] private Button _tabCustom;
 
+        [Header("Tab Highlights")]
+        [SerializeField] private Image _tabBeginnerBg;
+        [SerializeField] private Image _tabIntermediateBg;
+        [SerializeField] private Image _tabExpertBg;
+        [SerializeField] private Image _tabCustomBg;
+
         [Header("Rows Container")]
         [SerializeField] private Transform _rowsContainer;
         [SerializeField] private GameObject _rowPrefab;
@@ -30,7 +36,13 @@ namespace Minesweeper.UI
         [SerializeField] private Button _resetScoresButton;
         [SerializeField] private Button _closeButton;
 
+        [Header("Font Reference")]
+        [SerializeField] private TMP_FontAsset _fontAsset;
+
         private DifficultyLevel _activeTab = DifficultyLevel.Beginner;
+
+        private static readonly Color ColorActiveTab = new Color(0f, 242f / 255f, 254f / 255f, 0.25f);
+        private static readonly Color ColorInactiveTab = new Color(13f / 255f, 17f / 255f, 26f / 255f, 0.9f);
 
         private void Awake()
         {
@@ -74,10 +86,29 @@ namespace Minesweeper.UI
             }
         }
 
+        public void SetFont(TMP_FontAsset font)
+        {
+            _fontAsset = font;
+        }
+
         private void SwitchTab(DifficultyLevel level)
         {
             _activeTab = level;
+
+            UpdateTabVisual(_tabBeginnerBg, _activeTab == DifficultyLevel.Beginner);
+            UpdateTabVisual(_tabIntermediateBg, _activeTab == DifficultyLevel.Intermediate);
+            UpdateTabVisual(_tabExpertBg, _activeTab == DifficultyLevel.Expert);
+            UpdateTabVisual(_tabCustomBg, _activeTab == DifficultyLevel.Custom);
+
             PopulateTable();
+        }
+
+        private void UpdateTabVisual(Image bg, bool isActive)
+        {
+            if (bg != null)
+            {
+                bg.color = isActive ? ColorActiveTab : ColorInactiveTab;
+            }
         }
 
         public void PopulateTable()
@@ -89,7 +120,7 @@ namespace Minesweeper.UI
             {
                 if (_rowsContainer != null) _rowsContainer.gameObject.SetActive(false);
                 if (_customNoticeObject != null) _customNoticeObject.SetActive(true);
-                if (_bestResultText != null) _bestResultText.text = "ОСОБЫЙ РЕЖИМ НЕ УЧИТЫВАЕТСЯ В РЕЕСТРЕ РЕКОРДОВ";
+                if (_bestResultText != null) _bestResultText.text = "ОСОБЫЙ РЕЖИМ НЕ УЧИТЫВАЕТСЯ В РЕЕСТРЕ РЕКОРДОВ (FR-026)";
                 return;
             }
 
@@ -111,17 +142,8 @@ namespace Minesweeper.UI
                     for (int i = 0; i < list.Count; i++)
                     {
                         var entry = list[i];
-                        var rowObj = _rowPrefab != null ? Instantiate(_rowPrefab, _rowsContainer) : CreateFallbackRow(i + 1, entry);
+                        var rowObj = CreateFallbackRow(i + 1, entry);
                         rowObj.SetActive(true);
-
-                        var texts = rowObj.GetComponentsInChildren<TextMeshProUGUI>();
-                        if (texts.Length >= 4)
-                        {
-                            texts[0].text = $"0{i + 1}";
-                            texts[1].text = entry.PlayerName;
-                            texts[2].text = $"{entry.TimeSeconds:F1}s";
-                            texts[3].text = entry.Date;
-                        }
                     }
                 }
             }
@@ -130,39 +152,78 @@ namespace Minesweeper.UI
             {
                 if (list != null && list.Count > 0)
                 {
-                    _bestResultText.text = $"ВАШ ЛУЧШИЙ РЕЗУЛЬТАТ: {list[0].TimeSeconds:F1}s [РАНГ #1 - {list[0].PlayerName}]";
+                    _bestResultText.text = $"ВАШ ЛУЧШИЙ РЕЗУЛЬТАТ: {list[0].TimeSeconds:F1}s [РАНГ #1 — {list[0].PlayerName}]";
                 }
                 else
                 {
-                    _bestResultText.text = "РЕКОРДОВ ПОКА НЕТ";
+                    _bestResultText.text = "РЕКОРДОВ ПОКА НЕТ // БУДЬТЕ ПЕРВЫМ";
                 }
             }
         }
 
         private GameObject CreateFallbackRow(int rank, HighScoreEntry entry)
         {
-            var rowObj = new GameObject($"Row_{rank}", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            var rowObj = new GameObject($"Row_{rank}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
             rowObj.transform.SetParent(_rowsContainer, false);
-            var hlg = rowObj.GetComponent<HorizontalLayoutGroup>();
-            hlg.childControlWidth = true;
-            hlg.childForceExpandWidth = true;
 
-            CreateLabel(rowObj.transform, $"0{rank}", 40, Color.cyan);
-            CreateLabel(rowObj.transform, entry.PlayerName, 160, Color.white);
-            CreateLabel(rowObj.transform, $"{entry.TimeSeconds:F1}s", 80, Color.cyan);
-            CreateLabel(rowObj.transform, entry.Date, 100, Color.gray);
+            var le = rowObj.GetComponent<LayoutElement>();
+            le.minHeight = 36;
+            le.preferredHeight = 38;
+            le.flexibleWidth = 1f;
+
+            var img = rowObj.GetComponent<Image>();
+            img.color = rank == 1 ? new Color(251f / 255f, 191f / 255f, 36f / 255f, 0.12f) :
+                        rank == 2 ? new Color(0f, 242f / 255f, 254f / 255f, 0.08f) :
+                        rank == 3 ? new Color(148f / 255f, 163f / 255f, 184f / 255f, 0.06f) :
+                        new Color(18f / 255f, 24f / 255f, 35f / 255f, 0.6f);
+
+            var hlg = rowObj.GetComponent<HorizontalLayoutGroup>();
+            hlg.padding = new RectOffset(16, 16, 2, 2);
+            hlg.spacing = 12;
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = true;
+            hlg.childForceExpandWidth = false;
+
+            // 1. Rank (#1, #2, ...)
+            var rankColor = rank == 1 ? new Color(251f / 255f, 191f / 255f, 36f / 255f) :
+                            rank == 2 ? new Color(0f, 242f / 255f, 254f / 255f) :
+                            rank == 3 ? new Color(203f / 255f, 213f / 255f, 225f / 255f) :
+                            new Color(148f / 255f, 163f / 255f, 184f / 255f);
+            var rankTxt = CreateLabel(rowObj.transform, $"#{rank}", 55, rankColor);
+            rankTxt.fontStyle = FontStyles.Bold;
+            rankTxt.alignment = TextAlignmentOptions.Center;
+
+            // 2. Operator Callsign
+            var nameTxt = CreateLabel(rowObj.transform, entry.PlayerName, 260, Color.white);
+            nameTxt.fontStyle = FontStyles.Bold;
+            nameTxt.alignment = TextAlignmentOptions.MidlineLeft;
+
+            // 3. Time
+            var timeColor = rank == 1 ? new Color(251f / 255f, 191f / 255f, 36f / 255f) :
+                            new Color(0f, 242f / 255f, 254f / 255f);
+            var timeTxt = CreateLabel(rowObj.transform, $"{entry.TimeSeconds:F1}s", 110, timeColor);
+            timeTxt.fontStyle = FontStyles.Bold;
+            timeTxt.alignment = TextAlignmentOptions.MidlineRight;
+
+            // 4. Date
+            var dateTxt = CreateLabel(rowObj.transform, entry.Date, 140, new Color(148f / 255f, 163f / 255f, 184f / 255f));
+            dateTxt.alignment = TextAlignmentOptions.MidlineRight;
+
             return rowObj;
         }
 
         private TextMeshProUGUI CreateLabel(Transform parent, string text, float width, Color color)
         {
-            var go = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var go = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
             go.transform.SetParent(parent, false);
             var tmp = go.GetComponent<TextMeshProUGUI>();
+            if (_fontAsset != null) tmp.font = _fontAsset;
             tmp.text = text;
-            tmp.fontSize = 14;
+            tmp.fontSize = 13;
             tmp.color = color;
-            var le = go.AddComponent<LayoutElement>();
+            tmp.enableWordWrapping = false;
+            var le = go.GetComponent<LayoutElement>();
             le.minWidth = width;
             le.preferredWidth = width;
             return tmp;
