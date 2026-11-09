@@ -27,12 +27,18 @@ namespace Minesweeper.Editor
             if (summary.result == BuildResult.Succeeded)
             {
                 Debug.Log($"Build succeeded: {summary.totalSize / 1024 / 1024} MB, time: {summary.totalTime.TotalSeconds:F1}s");
-                EditorApplication.Exit(0);
+                if (Application.isBatchMode)
+                {
+                    EditorApplication.Exit(0);
+                }
             }
             else
             {
                 Debug.LogError($"Build failed with result: {summary.result}, errors: {summary.totalErrors}");
-                EditorApplication.Exit(1);
+                if (Application.isBatchMode)
+                {
+                    EditorApplication.Exit(1);
+                }
             }
         }
     }

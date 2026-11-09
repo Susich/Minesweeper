@@ -142,19 +142,17 @@ namespace Minesweeper.UI
 
         private float AdjustGridAndFrame(int width, int height)
         {
-            // Tactical Console Deck width is fixed to 1160px on 1920x1080 canvas
-            float consoleWidth = 1160f;
             float spacing = 3f;
 
-            // Available area inside GridWrapper
-            float availW = consoleWidth - 64f; // ~1096px
-            float availH = 520f; // 520px height for grid
+            // Available area inside GridWrapper (deck is 560px tall, grid area is ~440px)
+            float availW = 920f;
+            float availH = 430f;
 
             float maxCellW = (availW - (spacing * (width - 1))) / width;
             float maxCellH = (availH - (spacing * (height - 1))) / height;
 
-            // Clamped: between 26 and 52 px with integer pixel snap for crisp rendering
-            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 26f, 52f));
+            // Clamped: between 22 and 46 px with integer pixel snap for crisp rendering
+            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 22f, 46f));
 
             if (_gridLayout != null)
             {
@@ -170,28 +168,14 @@ namespace Minesweeper.UI
             if (_gridContainer != null)
             {
                 _gridContainer.sizeDelta = new Vector2(totalGridW, totalGridH);
-
-                if (_gridContainer.parent != null)
-                {
-                    var wrapperRt = _gridContainer.parent.GetComponent<RectTransform>();
-                    if (wrapperRt != null)
-                    {
-                        wrapperRt.sizeDelta = new Vector2(totalGridW, totalGridH);
-                        var le = wrapperRt.GetComponent<LayoutElement>();
-                        if (le != null)
-                        {
-                            le.preferredHeight = totalGridH + 24f;
-                        }
-                    }
-                }
+                _gridContainer.anchoredPosition = Vector2.zero;
             }
 
-            // Maintain wide command deck frame (1160px)
+            // Keep deck width responsive (between 820px and 1000px) and fixed height 560px (never overlaps top bar)
             if (_consoleFrame != null)
             {
-                float frameW = Mathf.Max(consoleWidth, totalGridW + 64f);
-                float frameH = totalGridH + 240f; // Header telemetry 38 + Status bay 84 + Footer 38 + Paddings & Margins 80
-                _consoleFrame.sizeDelta = new Vector2(frameW, frameH);
+                float deckW = Mathf.Clamp(totalGridW + 64f, 820f, 1000f);
+                _consoleFrame.sizeDelta = new Vector2(deckW, 560f);
             }
 
             return cellSize;
@@ -199,70 +183,86 @@ namespace Minesweeper.UI
 
         private void OnCellUpdated(CellData cellData)
         {
-            if (cellData == null) return;
-            if (cellData.X >= 0 && cellData.X < _currentWidth && cellData.Y >= 0 && cellData.Y < _currentHeight)
+            if (cellData != null && cellData.X >= 0 && cellData.X < _currentWidth && cellData.Y >= 0 && cellData.Y < _currentHeight)
             {
-                _cellViews[cellData.X, cellData.Y]?.UpdateVisuals(cellData);
+                _cellViews[cellData.X, cellData.Y]?.UpdateView(cellData);
             }
         }
 
         private void OnMultipleCellsUpdated(List<CellData> cells)
         {
             if (cells == null) return;
-            foreach (var c in cells)
+            for (int i = 0; i < cells.Count; i++)
             {
-                OnCellUpdated(c);
+                OnCellUpdated(cells[i]);
             }
         }
 
-        private void OnDetonated(CellData detonatedCell)
+        private void OnDetonated(int hitX, int hitY)
         {
-            if (ScreenShake.Instance != null)
+            if (_cellViews != null && hitX >= 0 && hitX < _currentWidth && hitY >= 0 && hitY < _currentHeight)
             {
-                ScreenShake.Instance.Shake(0.4f, 15f);
+                _cellViews[hitX, hitY]?.PlayExplosionAnimation();
             }
         }
 
         private GameObject CreateCellTemplate()
         {
             var go = new GameObject("CellTemplate", typeof(RectTransform), typeof(Image), typeof(CellView));
-            go.transform.SetParent(transform, false);
             go.SetActive(false);
-
-            var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(48, 48);
+            go.transform.SetParent(transform, false);
 
             var img = go.GetComponent<Image>();
             img.sprite = ClosedSprite;
             img.type = Image.Type.Simple;
 
+            var cellView = go.GetComponent<CellView>();
+            cellView.ClosedSprite = ClosedSprite;
+            cellView.HoverSprite = HoverSprite;
+            cellView.PressedSprite = PressedSprite;
+            cellView.RevealedSprite = RevealedSprite;
+            cellView.ExplodedSprite = ExplodedSprite;
+            cellView.FlagSprite = FlagSprite;
+            cellView.MineSprite = MineSprite;
+            cellView.FalseFlagSprite = FalseFlagSprite;
+            cellView.FontAsset = FontAsset;
+
+            // Icon Child
             var iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             iconGo.transform.SetParent(go.transform, false);
             var iconRt = iconGo.GetComponent<RectTransform>();
             iconRt.anchorMin = new Vector2(0.5f, 0.5f);
             iconRt.anchorMax = new Vector2(0.5f, 0.5f);
-            iconRt.sizeDelta = new Vector2(32, 32);
+            iconRt.sizeDelta = new Vector2(24, 24);
             var iconImg = iconGo.GetComponent<Image>();
             iconImg.raycastTarget = false;
             iconGo.SetActive(false);
 
-            var numGo = new GameObject("NumberText", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
-            numGo.transform.SetParent(go.transform, false);
-            var numRt = numGo.GetComponent<RectTransform>();
-            numRt.anchorMin = Vector2.zero;
-            numRt.anchorMax = Vector2.one;
-            numRt.offsetMin = Vector2.zero;
-            numRt.offsetMax = Vector2.zero;
-            var numTmp = numGo.GetComponent<TMPro.TextMeshProUGUI>();
-            if (FontAsset != null) numTmp.font = FontAsset;
-            numTmp.fontSize = 24;
-            numTmp.fontStyle = TMPro.FontStyles.Bold;
-            numTmp.alignment = TMPro.TextAlignmentOptions.Center;
-            numTmp.raycastTarget = false;
-            numTmp.text = "";
+            // Number Text Child
+            var textGo = new GameObject("NumberText", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            textGo.transform.SetParent(go.transform, false);
+            var textRt = textGo.GetComponent<RectTransform>();
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
+            var tmp = textGo.GetComponent<TMPro.TextMeshProUGUI>();
+            if (FontAsset != null) tmp.font = FontAsset;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.fontSize = 18;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+            tmp.raycastTarget = false;
+            textGo.SetActive(false);
 
-            var cv = go.GetComponent<CellView>();
-            cv.Configure(img, iconImg, numTmp, ClosedSprite, HoverSprite, PressedSprite, RevealedSprite, ExplodedSprite, FlagSprite, MineSprite, FalseFlagSprite);
+            // Wire serialized fields on CellView
+            var bgField = typeof(CellView).GetField("_bgImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            bgField?.SetValue(cellView, img);
+
+            var iconField = typeof(CellView).GetField("_iconImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            iconField?.SetValue(cellView, iconImg);
+
+            var textField = typeof(CellView).GetField("_numberText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            textField?.SetValue(cellView, tmp);
 
             return go;
         }
