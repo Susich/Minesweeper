@@ -88,7 +88,11 @@ namespace Minesweeper.UI
             // Reset overlays
             _bgImage.color = Color.white;
             if (_iconImage != null) _iconImage.gameObject.SetActive(false);
-            if (_numberText != null) _numberText.text = "";
+            if (_numberText != null)
+            {
+                _numberText.text = "";
+                _numberText.gameObject.SetActive(false);
+            }
 
             switch (data.State)
             {
@@ -125,6 +129,7 @@ namespace Minesweeper.UI
                         {
                             _numberText.text = data.AdjacentMines.ToString();
                             _numberText.color = GetNumberColor(data.AdjacentMines);
+                            _numberText.gameObject.SetActive(true);
                         }
                     }
 

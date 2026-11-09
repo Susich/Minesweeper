@@ -335,7 +335,20 @@ namespace Minesweeper.Core
                     _saveManager.ClearSession();
 
                     OnDetonated?.Invoke(LastDetonatedCell);
-                    OnMultipleCellsUpdated?.Invoke(result.RevealedCells);
+
+                    // Pass all board cells to ensure all mines & false flags are updated across the board
+                    var allBoardCells = new List<CellData>();
+                    if (Board != null)
+                    {
+                        for (int gx = 0; gx < Board.Width; gx++)
+                        {
+                            for (int gy = 0; gy < Board.Height; gy++)
+                            {
+                                allBoardCells.Add(Board.GetCell(gx, gy));
+                            }
+                        }
+                    }
+                    OnMultipleCellsUpdated?.Invoke(allBoardCells.Count > 0 ? allBoardCells : result.RevealedCells);
                     OnGameStatusChanged?.Invoke(Status);
 
                     if (AudioManager.Instance != null)
@@ -353,6 +366,19 @@ namespace Minesweeper.Core
                         Status = GameStatus.Victory;
                         _isMouseDownOnBoard = false;
                         _saveManager.ClearSession();
+
+                        var allBoardCells = new List<CellData>();
+                        if (Board != null)
+                        {
+                            for (int gx = 0; gx < Board.Width; gx++)
+                            {
+                                for (int gy = 0; gy < Board.Height; gy++)
+                                {
+                                    allBoardCells.Add(Board.GetCell(gx, gy));
+                                }
+                            }
+                        }
+                        OnMultipleCellsUpdated?.Invoke(allBoardCells.Count > 0 ? allBoardCells : result.RevealedCells);
                         OnMineCounterChanged?.Invoke(RemainingMines);
                         OnGameStatusChanged?.Invoke(Status);
 

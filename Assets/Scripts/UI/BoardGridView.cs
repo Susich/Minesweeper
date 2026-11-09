@@ -144,15 +144,15 @@ namespace Minesweeper.UI
         {
             float spacing = 3f;
 
-            // Available area inside GridWrapper (deck is 560px tall, grid area is ~440px)
-            float availW = 920f;
-            float availH = 430f;
+            // Available area inside GridWrapper (deck is 560px tall, grid area is ~416px)
+            float availW = 900f;
+            float availH = 416f;
 
             float maxCellW = (availW - (spacing * (width - 1))) / width;
             float maxCellH = (availH - (spacing * (height - 1))) / height;
 
-            // Clamped: between 22 and 46 px with integer pixel snap for crisp rendering
-            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 22f, 46f));
+            // Clamped: between 22 and 44 px with integer pixel snap for crisp rendering
+            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 22f, 44f));
 
             if (_gridLayout != null)
             {
@@ -185,7 +185,7 @@ namespace Minesweeper.UI
         {
             if (cellData != null && cellData.X >= 0 && cellData.X < _currentWidth && cellData.Y >= 0 && cellData.Y < _currentHeight)
             {
-                _cellViews[cellData.X, cellData.Y]?.UpdateView(cellData);
+                _cellViews[cellData.X, cellData.Y]?.UpdateVisuals(cellData);
             }
         }
 
@@ -198,11 +198,11 @@ namespace Minesweeper.UI
             }
         }
 
-        private void OnDetonated(int hitX, int hitY)
+        private void OnDetonated(CellData hitCell)
         {
-            if (_cellViews != null && hitX >= 0 && hitX < _currentWidth && hitY >= 0 && hitY < _currentHeight)
+            if (hitCell != null)
             {
-                _cellViews[hitX, hitY]?.PlayExplosionAnimation();
+                OnCellUpdated(hitCell);
             }
         }
 
@@ -225,7 +225,6 @@ namespace Minesweeper.UI
             cellView.FlagSprite = FlagSprite;
             cellView.MineSprite = MineSprite;
             cellView.FalseFlagSprite = FalseFlagSprite;
-            cellView.FontAsset = FontAsset;
 
             // Icon Child
             var iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
@@ -236,6 +235,7 @@ namespace Minesweeper.UI
             iconRt.sizeDelta = new Vector2(24, 24);
             var iconImg = iconGo.GetComponent<Image>();
             iconImg.raycastTarget = false;
+            iconImg.preserveAspect = true;
             iconGo.SetActive(false);
 
             // Number Text Child
@@ -252,6 +252,8 @@ namespace Minesweeper.UI
             tmp.fontSize = 18;
             tmp.fontStyle = TMPro.FontStyles.Bold;
             tmp.raycastTarget = false;
+            tmp.enableWordWrapping = false;
+            tmp.overflowMode = TMPro.TextOverflowModes.Overflow;
             textGo.SetActive(false);
 
             // Wire serialized fields on CellView

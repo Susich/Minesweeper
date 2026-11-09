@@ -17,6 +17,13 @@ namespace Minesweeper.Editor
         [MenuItem("Tools/Build Cyber Minesweeper Scene")]
         public static void BuildScene()
         {
+            if (EditorApplication.isPlaying)
+            {
+                EditorApplication.isPlaying = false;
+                Debug.LogWarning("Exited play mode before building scene. Please run again once stopped.");
+                return;
+            }
+
             Debug.Log("Starting Cyber Minesweeper Scene generation (Modern Cyberpunk HUD v2.4 PRO)...");
             Directory.CreateDirectory("Assets/Prefabs");
             Directory.CreateDirectory("Assets/Scenes");
@@ -122,6 +129,7 @@ namespace Minesweeper.Editor
 
             var titleText = CreateText(brandGo.transform, "САПЁР", fontMono, 16, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             titleText.enableWordWrapping = false;
+            titleText.GetComponent<RectTransform>().sizeDelta = new Vector2(58, 22);
 
             var badgeGo = CreateUIObject("BadgePro", brandGo.transform, Vector2.zero, Vector2.zero, new Vector2(64, 22));
             badgeGo.AddComponent<Image>().color = new Color(34f / 255f, 42f / 255f, 58f / 255f);
@@ -199,8 +207,8 @@ namespace Minesweeper.Editor
             SetPrivateField(screenShake, "_targetTransform", consoleDeck.GetComponent<RectTransform>());
 
             var vlgDeck = consoleDeck.AddComponent<VerticalLayoutGroup>();
-            vlgDeck.padding = new RectOffset(14, 14, 10, 10);
-            vlgDeck.spacing = 6;
+            vlgDeck.padding = new RectOffset(16, 16, 12, 18);
+            vlgDeck.spacing = 8;
             vlgDeck.childControlWidth = true;
             vlgDeck.childControlHeight = false;
 
@@ -264,7 +272,7 @@ namespace Minesweeper.Editor
             var btnPauseGo = CreateActionButtonWithIcon("BtnPause", centerDeckControls.transform, "Пауза", sIconPause, 44f, fontMono, sBtnCyber, out var pauseText, out var pauseIcon);
             var btnPause = btnPauseGo.GetComponent<Button>();
 
-            var btnHintGo = CreateActionButtonWithIcon("BtnHint", centerDeckControls.transform, "Подсказка", sIconHint, 68f, fontMono, sBtnAccent);
+            var btnHintGo = CreateActionButtonWithIcon("BtnHint", centerDeckControls.transform, "Подсказка", sIconHint, 76f, fontMono, sBtnAccent);
             var btnHint = btnHintGo.GetComponent<Button>();
 
             // Right Spacer
@@ -287,10 +295,10 @@ namespace Minesweeper.Editor
             timerCounterText.alignment = TextAlignmentOptions.Center;
 
             // 2. Central Minefield Grid Bay
-            var gridWrapper = CreateUIObject("GridWrapper", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 440));
+            var gridWrapper = CreateUIObject("GridWrapper", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 416));
             gridWrapper.AddComponent<Image>().color = new Color(9f / 255f, 13f / 255f, 20f / 255f, 0.98f);
             var gwLe = gridWrapper.AddComponent<LayoutElement>();
-            gwLe.preferredHeight = 440;
+            gwLe.preferredHeight = 416;
             gwLe.flexibleHeight = 1;
 
             var gridContainerGo = CreateUIObject("GridContainer", gridWrapper.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 440));
@@ -410,31 +418,37 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("DefeatModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(500, 360));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(520, 390));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
 
             var vlg = panel.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(20, 20, 16, 16);
+            vlg.padding = new RectOffset(24, 24, 20, 20);
             vlg.spacing = 10;
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.childControlWidth = true;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandHeight = false;
 
             var badge = CreateText(panel.transform, "[ ОПАСНОСТЬ // НЕОБРАТИМАЯ ДЕТОНАЦИЯ ]", font, 11, FontStyles.Bold, new Color(248f / 255f, 113f / 255f, 113f / 255f));
             badge.alignment = TextAlignmentOptions.Center;
+            badge.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 18);
 
             var title = CreateText(panel.transform, "Детонация", font, 24, FontStyles.Bold, new Color(255f / 255f, 220f / 255f, 220f / 255f));
             title.alignment = TextAlignmentOptions.Center;
+            title.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 32);
 
             var subtitle = CreateText(panel.transform, "Подрыв мины в секторе (ряд 0, колонка 0)", font, 12, FontStyles.Normal, new Color(248f / 255f, 113f / 255f, 113f / 255f));
             subtitle.alignment = TextAlignmentOptions.Center;
+            subtitle.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 20);
 
-            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 64));
+            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 56));
             var hlgStats = statsRow.AddComponent<HorizontalLayoutGroup>();
             hlgStats.spacing = 10;
             hlgStats.childAlignment = TextAnchor.MiddleCenter;
             hlgStats.childControlWidth = true;
+            hlgStats.childControlHeight = true;
 
             CreateStatTile(statsRow.transform, "ВРЕМЯ", "00:00", font, out var tTime);
             CreateStatTile(statsRow.transform, "ОТКРЫТО", "0%", font, out var tOpened);
@@ -445,6 +459,7 @@ namespace Minesweeper.Editor
             hlg.spacing = 12;
             hlg.childAlignment = TextAnchor.MiddleCenter;
             hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
 
             var btnRetry = CreateActionButton(btnRow.transform, "Попробовать снова", font, sBtnDanger);
             var btnInspect = CreateActionButton(btnRow.transform, "Обзор поля", font, sBtnCyber);
@@ -467,31 +482,37 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("VictoryModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(520, 400));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(540, 420));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
 
             var vlg = panel.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(20, 20, 16, 16);
+            vlg.padding = new RectOffset(24, 24, 20, 20);
             vlg.spacing = 10;
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.childControlWidth = true;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandHeight = false;
 
             var badge = CreateText(panel.transform, "[ МИССИЯ ВЫПОЛНЕНА // СЕКТОР ЧИСТ ]", font, 11, FontStyles.Bold, new Color(52f / 255f, 211f / 255f, 153f / 255f));
             badge.alignment = TextAlignmentOptions.Center;
+            badge.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 18);
 
             var title = CreateText(panel.transform, "Победа!", font, 26, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             title.alignment = TextAlignmentOptions.Center;
+            title.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 34);
 
             var subtitle = CreateText(panel.transform, "Все заряды обезврежены, сектор зачищен", font, 12, FontStyles.Normal, new Color(0f, 242f / 255f, 254f / 255f));
             subtitle.alignment = TextAlignmentOptions.Center;
+            subtitle.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 20);
 
-            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 64));
+            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 56));
             var hlgStats = statsRow.AddComponent<HorizontalLayoutGroup>();
             hlgStats.spacing = 10;
             hlgStats.childAlignment = TextAnchor.MiddleCenter;
             hlgStats.childControlWidth = true;
+            hlgStats.childControlHeight = true;
 
             CreateStatTile(statsRow.transform, "ВРЕМЯ", "00:00", font, out var tTime);
             CreateStatTile(statsRow.transform, "СЛОЖНОСТЬ", "Любитель", font, out var tDiff);
@@ -525,6 +546,7 @@ namespace Minesweeper.Editor
             hlgBtn.spacing = 12;
             hlgBtn.childAlignment = TextAnchor.MiddleCenter;
             hlgBtn.childControlWidth = true;
+            hlgBtn.childControlHeight = true;
 
             var btnNew = CreateActionButton(btnRow.transform, "Новая игра", font, sBtnCyber);
             var btnMenu = CreateActionButton(btnRow.transform, "В меню", font, sBtnCyber);
@@ -852,6 +874,18 @@ namespace Minesweeper.Editor
             return go;
         }
 
+        private static GameObject CreateUIObject(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin;
+            rt.offsetMax = offsetMax;
+            return go;
+        }
+
         private static TextMeshProUGUI CreateText(Transform parent, string text, TMP_FontAsset font, float size, FontStyles style, Color color)
         {
             var go = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -1021,15 +1055,26 @@ namespace Minesweeper.Editor
             var tile = CreateUIObject("Tile_" + title, parent, Vector2.zero, Vector2.zero, new Vector2(130, 56));
             tile.AddComponent<Image>().color = new Color(11f / 255f, 14f / 255f, 22f / 255f);
             var vlg = tile.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(6, 6, 4, 4);
+            vlg.padding = new RectOffset(6, 6, 6, 6);
             vlg.spacing = 2;
             vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
 
             var tTitle = CreateText(tile.transform, title, font, 9, FontStyles.Bold, new Color(146f / 255f, 157f / 255f, 178f / 255f));
             tTitle.alignment = TextAlignmentOptions.Center;
+            tTitle.enableWordWrapping = false;
+            var leTitle = tTitle.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 16f;
 
             valText = CreateText(tile.transform, val, font, 16, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
             valText.alignment = TextAlignmentOptions.Center;
+            valText.enableWordWrapping = false;
+            var leVal = valText.gameObject.AddComponent<LayoutElement>();
+            leVal.preferredHeight = 24f;
+
             return tile;
         }
 

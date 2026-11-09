@@ -178,6 +178,21 @@ namespace Minesweeper.Core
                 result.RevealedCells.Add(cell);
 
                 RevealAllMinesOnDefeat(x, y);
+
+                for (int gx = 0; gx < Width; gx++)
+                {
+                    for (int gy = 0; gy < Height; gy++)
+                    {
+                        var c = _grid[gx, gy];
+                        if (c.State == CellState.Exploded || c.State == CellState.FalseFlag || (c.IsMine && c.State == CellState.Revealed))
+                        {
+                            if (!result.RevealedCells.Contains(c))
+                            {
+                                result.RevealedCells.Add(c);
+                            }
+                        }
+                    }
+                }
                 return result;
             }
 
@@ -217,6 +232,17 @@ namespace Minesweeper.Core
             {
                 result.IsVictory = true;
                 FlagAllMinesOnVictory();
+                for (int gx = 0; gx < Width; gx++)
+                {
+                    for (int gy = 0; gy < Height; gy++)
+                    {
+                        var c = _grid[gx, gy];
+                        if (c.IsMine && !result.RevealedCells.Contains(c))
+                        {
+                            result.RevealedCells.Add(c);
+                        }
+                    }
+                }
             }
 
             return result;
