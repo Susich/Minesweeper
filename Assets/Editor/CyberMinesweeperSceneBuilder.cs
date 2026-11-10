@@ -128,7 +128,7 @@ namespace Minesweeper.Editor
             }
 
             var titleText = CreateText(brandGo.transform, "САПЁР", fontMono, 16, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
-            titleText.enableWordWrapping = false;
+            titleText.textWrappingMode = TextWrappingModes.NoWrap;
             titleText.GetComponent<RectTransform>().sizeDelta = new Vector2(58, 22);
 
             var badgeGo = CreateUIObject("BadgePro", brandGo.transform, Vector2.zero, Vector2.zero, new Vector2(64, 22));
@@ -175,7 +175,7 @@ namespace Minesweeper.Editor
 
             CreatePulseDot(diffPillGo.transform, new Color(52f / 255f, 211f / 255f, 153f / 255f), 6f);
             var diffPillText = CreateText(diffPillGo.transform, "Любитель • 40 мин", fontMono, 11, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
-            diffPillText.enableWordWrapping = false;
+            diffPillText.textWrappingMode = TextWrappingModes.NoWrap;
 
             var btnSoundGo = CreateIconButton("BtnSound", rightGroup.transform, sIconSoundOn, out var soundIconImg);
             var btnSound = btnSoundGo.GetComponent<Button>();
@@ -187,11 +187,11 @@ namespace Minesweeper.Editor
             var btnSettingsGear = btnGearGo.GetComponent<Button>();
 
             var fpsText = CreateText(rightGroup.transform, "60 FPS", fontMono, 11, FontStyles.Normal, new Color(146f / 255f, 157f / 255f, 178f / 255f));
-            fpsText.enableWordWrapping = false;
+            fpsText.textWrappingMode = TextWrappingModes.NoWrap;
 
             // --- CENTRAL TACTICAL DECK (Console Frame) ---
-            var consoleDeck = CreateUIObject("TacticalDeck", canvasGo.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(960, 560));
-            consoleDeck.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -22);
+            var consoleDeck = CreateUIObject("TacticalDeck", canvasGo.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(960, 570));
+            consoleDeck.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -18);
             var deckImg = consoleDeck.AddComponent<Image>();
             deckImg.sprite = sPanelCyber;
             deckImg.type = Image.Type.Sliced;
@@ -207,14 +207,20 @@ namespace Minesweeper.Editor
             SetPrivateField(screenShake, "_targetTransform", consoleDeck.GetComponent<RectTransform>());
 
             var vlgDeck = consoleDeck.AddComponent<VerticalLayoutGroup>();
-            vlgDeck.padding = new RectOffset(16, 16, 12, 18);
-            vlgDeck.spacing = 8;
+            vlgDeck.padding = new RectOffset(16, 16, 10, 14);
+            vlgDeck.spacing = 6;
             vlgDeck.childControlWidth = true;
-            vlgDeck.childControlHeight = false;
+            vlgDeck.childControlHeight = true;
+            vlgDeck.childForceExpandWidth = true;
+            vlgDeck.childForceExpandHeight = false;
 
             // 1. Header Status Deck (Counters + Secondary Bar)
-            var headerStatusDeck = CreateUIObject("HeaderStatusDeck", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 56));
+            var headerStatusDeck = CreateUIObject("HeaderStatusDeck", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 52));
             headerStatusDeck.AddComponent<Image>().color = new Color(17f / 255f, 22f / 255f, 34f / 255f, 0.95f);
+            var hsdLe = headerStatusDeck.AddComponent<LayoutElement>();
+            hsdLe.preferredHeight = 52;
+            hsdLe.minHeight = 52;
+
             var hlgHSD = headerStatusDeck.AddComponent<HorizontalLayoutGroup>();
             hlgHSD.padding = new RectOffset(16, 16, 2, 2);
             hlgHSD.childAlignment = TextAnchor.MiddleCenter;
@@ -222,7 +228,7 @@ namespace Minesweeper.Editor
             hlgHSD.childControlHeight = false;
 
             // Mine Counter Bay (Left)
-            var mineBay = CreateUIObject("MineBay", headerStatusDeck.transform, Vector2.zero, Vector2.zero, new Vector2(120, 50));
+            var mineBay = CreateUIObject("MineBay", headerStatusDeck.transform, Vector2.zero, Vector2.zero, new Vector2(120, 48));
             mineBay.AddComponent<Image>().color = new Color(9f / 255f, 13f / 255f, 20f / 255f);
             var vlgMB = mineBay.AddComponent<VerticalLayoutGroup>();
             vlgMB.padding = new RectOffset(4, 4, 2, 2);
@@ -241,7 +247,7 @@ namespace Minesweeper.Editor
             spacerLeft.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             // Center Secondary Action Controls
-            var centerDeckControls = CreateUIObject("CenterControls", headerStatusDeck.transform, Vector2.zero, Vector2.zero, new Vector2(360, 50));
+            var centerDeckControls = CreateUIObject("CenterControls", headerStatusDeck.transform, Vector2.zero, Vector2.zero, new Vector2(360, 48));
             var hlgCDC = centerDeckControls.AddComponent<HorizontalLayoutGroup>();
             hlgCDC.spacing = 8;
             hlgCDC.childAlignment = TextAnchor.MiddleCenter;
@@ -280,7 +286,7 @@ namespace Minesweeper.Editor
             spacerRight.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             // Timer Counter Bay (Right)
-            var timerBay = CreateUIObject("TimerBay", headerStatusDeck.transform, Vector2.zero, Vector2.zero, new Vector2(120, 50));
+            var timerBay = CreateUIObject("TimerBay", headerStatusDeck.transform, Vector2.zero, Vector2.zero, new Vector2(120, 48));
             timerBay.AddComponent<Image>().color = new Color(9f / 255f, 13f / 255f, 20f / 255f);
             var vlgTB = timerBay.AddComponent<VerticalLayoutGroup>();
             vlgTB.padding = new RectOffset(4, 4, 2, 2);
@@ -295,10 +301,10 @@ namespace Minesweeper.Editor
             timerCounterText.alignment = TextAlignmentOptions.Center;
 
             // 2. Central Minefield Grid Bay
-            var gridWrapper = CreateUIObject("GridWrapper", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 416));
+            var gridWrapper = CreateUIObject("GridWrapper", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 440));
             gridWrapper.AddComponent<Image>().color = new Color(9f / 255f, 13f / 255f, 20f / 255f, 0.98f);
             var gwLe = gridWrapper.AddComponent<LayoutElement>();
-            gwLe.preferredHeight = 416;
+            gwLe.preferredHeight = 440;
             gwLe.flexibleHeight = 1;
 
             var gridContainerGo = CreateUIObject("GridContainer", gridWrapper.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 440));
@@ -315,21 +321,25 @@ namespace Minesweeper.Editor
             // 3. Bottom Deck Status Footer
             var footerDeck = CreateUIObject("FooterDeck", consoleDeck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 28));
             footerDeck.AddComponent<Image>().color = new Color(17f / 255f, 22f / 255f, 34f / 255f, 0.95f);
+            var fdLe = footerDeck.AddComponent<LayoutElement>();
+            fdLe.preferredHeight = 28;
+            fdLe.minHeight = 28;
+
             var hlgFD = footerDeck.AddComponent<HorizontalLayoutGroup>();
             hlgFD.padding = new RectOffset(16, 16, 0, 0);
             hlgFD.spacing = 16;
             hlgFD.childAlignment = TextAnchor.MiddleCenter;
             hlgFD.childControlWidth = false;
-            hlgFD.childControlHeight = false;
+            hlgFD.childControlHeight = true;
 
             var flagsCountText = CreateText(footerDeck.transform, "Флаги: 0 / 10", fontMono, 11, FontStyles.Normal, new Color(203f / 255f, 213f / 255f, 225f / 255f));
-            flagsCountText.enableWordWrapping = false;
+            flagsCountText.textWrappingMode = TextWrappingModes.NoWrap;
 
             var fs1 = CreateUIObject("Spacer1", footerDeck.transform, Vector2.zero, Vector2.zero, Vector2.zero);
             fs1.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             var bottomDiffText = CreateText(footerDeck.transform, "Сложность: Новичок (9×9)", fontMono, 11, FontStyles.Normal, new Color(146f / 255f, 157f / 255f, 178f / 255f));
-            bottomDiffText.enableWordWrapping = false;
+            bottomDiffText.textWrappingMode = TextWrappingModes.NoWrap;
 
             var fs2 = CreateUIObject("Spacer2", footerDeck.transform, Vector2.zero, Vector2.zero, Vector2.zero);
             fs2.AddComponent<LayoutElement>().flexibleWidth = 1f;
@@ -339,11 +349,11 @@ namespace Minesweeper.Editor
             hlgSP.spacing = 6;
             hlgSP.childAlignment = TextAnchor.MiddleRight;
             hlgSP.childControlWidth = false;
-            hlgSP.childControlHeight = false;
+            hlgSP.childControlHeight = true;
 
             var statusDot = CreatePulseDot(statusPill.transform, new Color(0f, 242f / 255f, 254f / 255f), 6f).GetComponent<Image>();
             var statusLabel = CreateText(statusPill.transform, "[В ПРОЦЕССЕ]", fontMono, 11, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
-            statusLabel.enableWordWrapping = false;
+            statusLabel.textWrappingMode = TextWrappingModes.NoWrap;
 
             // Configure HeaderStatusView
             var headerStatusView = headerStatusDeck.AddComponent<HeaderStatusView>();
@@ -418,7 +428,7 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("DefeatModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(520, 390));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(540, 420));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -428,22 +438,28 @@ namespace Minesweeper.Editor
             vlg.spacing = 10;
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.childControlWidth = true;
-            vlg.childControlHeight = false;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
             vlg.childForceExpandHeight = false;
 
             var badge = CreateText(panel.transform, "[ ОПАСНОСТЬ // НЕОБРАТИМАЯ ДЕТОНАЦИЯ ]", font, 11, FontStyles.Bold, new Color(248f / 255f, 113f / 255f, 113f / 255f));
             badge.alignment = TextAlignmentOptions.Center;
-            badge.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 18);
+            var leBadge = badge.gameObject.AddComponent<LayoutElement>();
+            leBadge.preferredHeight = 18;
 
             var title = CreateText(panel.transform, "Детонация", font, 24, FontStyles.Bold, new Color(255f / 255f, 220f / 255f, 220f / 255f));
             title.alignment = TextAlignmentOptions.Center;
-            title.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 32);
+            var leTitle = title.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 32;
 
             var subtitle = CreateText(panel.transform, "Подрыв мины в секторе (ряд 0, колонка 0)", font, 12, FontStyles.Normal, new Color(248f / 255f, 113f / 255f, 113f / 255f));
             subtitle.alignment = TextAlignmentOptions.Center;
-            subtitle.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 20);
+            var leSub = subtitle.gameObject.AddComponent<LayoutElement>();
+            leSub.preferredHeight = 20;
 
-            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 56));
+            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 60));
+            var leStats = statsRow.AddComponent<LayoutElement>();
+            leStats.preferredHeight = 60;
             var hlgStats = statsRow.AddComponent<HorizontalLayoutGroup>();
             hlgStats.spacing = 10;
             hlgStats.childAlignment = TextAnchor.MiddleCenter;
@@ -455,6 +471,8 @@ namespace Minesweeper.Editor
             CreateStatTile(statsRow.transform, "ОСТАЛОСЬ МИН", "0", font, out var tMines);
 
             var btnRow = CreateUIObject("ButtonRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 38));
+            var leBtns = btnRow.AddComponent<LayoutElement>();
+            leBtns.preferredHeight = 38;
             var hlg = btnRow.AddComponent<HorizontalLayoutGroup>();
             hlg.spacing = 12;
             hlg.childAlignment = TextAnchor.MiddleCenter;
@@ -482,7 +500,7 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("VictoryModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(540, 420));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(560, 440));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -492,22 +510,28 @@ namespace Minesweeper.Editor
             vlg.spacing = 10;
             vlg.childAlignment = TextAnchor.MiddleCenter;
             vlg.childControlWidth = true;
-            vlg.childControlHeight = false;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
             vlg.childForceExpandHeight = false;
 
             var badge = CreateText(panel.transform, "[ МИССИЯ ВЫПОЛНЕНА // СЕКТОР ЧИСТ ]", font, 11, FontStyles.Bold, new Color(52f / 255f, 211f / 255f, 153f / 255f));
             badge.alignment = TextAlignmentOptions.Center;
-            badge.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 18);
+            var leBadge = badge.gameObject.AddComponent<LayoutElement>();
+            leBadge.preferredHeight = 18;
 
             var title = CreateText(panel.transform, "Победа!", font, 26, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             title.alignment = TextAlignmentOptions.Center;
-            title.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 34);
+            var leTitle = title.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 34;
 
             var subtitle = CreateText(panel.transform, "Все заряды обезврежены, сектор зачищен", font, 12, FontStyles.Normal, new Color(0f, 242f / 255f, 254f / 255f));
             subtitle.alignment = TextAlignmentOptions.Center;
-            subtitle.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 20);
+            var leSub = subtitle.gameObject.AddComponent<LayoutElement>();
+            leSub.preferredHeight = 20;
 
-            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 56));
+            var statsRow = CreateUIObject("StatsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 60));
+            var leStats = statsRow.AddComponent<LayoutElement>();
+            leStats.preferredHeight = 60;
             var hlgStats = statsRow.AddComponent<HorizontalLayoutGroup>();
             hlgStats.spacing = 10;
             hlgStats.childAlignment = TextAnchor.MiddleCenter;
@@ -518,11 +542,14 @@ namespace Minesweeper.Editor
             CreateStatTile(statsRow.transform, "СЛОЖНОСТЬ", "Любитель", font, out var tDiff);
             CreateStatTile(statsRow.transform, "РЕКОРД", "Новый!", font, out var tRecord);
 
-            var inputRow = CreateUIObject("InputRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 38));
+            var inputRow = CreateUIObject("InputRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 36));
+            var leInput = inputRow.AddComponent<LayoutElement>();
+            leInput.preferredHeight = 36;
             var hlgInput = inputRow.AddComponent<HorizontalLayoutGroup>();
             hlgInput.spacing = 10;
             hlgInput.childAlignment = TextAnchor.MiddleCenter;
             hlgInput.childControlWidth = false;
+            hlgInput.childControlHeight = true;
 
             CreateText(inputRow.transform, "ПОЗЫВНОЙ:", font, 12, FontStyles.Bold, Color.white);
             var inputGo = CreateUIObject("CallsignInput", inputRow.transform, Vector2.zero, Vector2.zero, new Vector2(180, 32));
@@ -542,6 +569,8 @@ namespace Minesweeper.Editor
             var saveBtnTxt = btnSave.GetComponentInChildren<TextMeshProUGUI>();
 
             var btnRow = CreateUIObject("ActionsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 38));
+            var leBtns = btnRow.AddComponent<LayoutElement>();
+            leBtns.preferredHeight = 38;
             var hlgBtn = btnRow.AddComponent<HorizontalLayoutGroup>();
             hlgBtn.spacing = 12;
             hlgBtn.childAlignment = TextAnchor.MiddleCenter;
@@ -569,7 +598,7 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("SettingsModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(600, 500));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(660, 560));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -579,16 +608,26 @@ namespace Minesweeper.Editor
             vlg.spacing = 8;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
 
             var title = CreateText(panel.transform, "Параметры игры", font, 16, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             title.alignment = TextAlignmentOptions.Center;
+            var leTitle = title.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 24;
 
             // 4 Presets
-            var presetsRow = CreateUIObject("PresetsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 54));
+            var presetsRow = CreateUIObject("PresetsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 56));
+            var lePresets = presetsRow.AddComponent<LayoutElement>();
+            lePresets.preferredHeight = 56;
             var hlgPresets = presetsRow.AddComponent<HorizontalLayoutGroup>();
             hlgPresets.spacing = 8;
             hlgPresets.childAlignment = TextAnchor.MiddleCenter;
             hlgPresets.childControlWidth = true;
+            hlgPresets.childControlHeight = true;
+            hlgPresets.childForceExpandWidth = true;
+            hlgPresets.childForceExpandHeight = true;
 
             var btnBeg = CreatePresetCard(presetsRow.transform, "LVL 1", "Новичок", "9 × 9 • 10 мин", font, sBtnCyber, out var indBeg);
             var btnInt = CreatePresetCard(presetsRow.transform, "LVL 2", "Любитель", "16 × 16 • 40 мин", font, sBtnCyber, out var indInt);
@@ -596,63 +635,87 @@ namespace Minesweeper.Editor
             var btnCust = CreatePresetCard(presetsRow.transform, "ОСОБЫЙ", "Особый", "Настраиваемый", font, sBtnCyber, out var indCust);
 
             // Custom steppers
-            var customCont = CreateUIObject("CustomContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 100));
+            var customCont = CreateUIObject("CustomContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 92));
+            var leCust = customCont.AddComponent<LayoutElement>();
+            leCust.preferredHeight = 92;
             var hlgCust = customCont.AddComponent<HorizontalLayoutGroup>();
             hlgCust.spacing = 8;
             hlgCust.childAlignment = TextAnchor.MiddleCenter;
             hlgCust.childControlWidth = true;
+            hlgCust.childControlHeight = true;
+            hlgCust.childForceExpandWidth = true;
+            hlgCust.childForceExpandHeight = true;
 
             CreateStepperWithSlider(customCont.transform, "Высота (ряды)", "16", 9, 24, font, out var txtH, out var btnHMinus, out var btnHPlus, out var sldH);
             CreateStepperWithSlider(customCont.transform, "Ширина (колонки)", "30", 9, 30, font, out var txtW, out var btnWMinus, out var btnWPlus, out var sldW);
             CreateStepperWithSlider(customCont.transform, "Число мин", "99", 10, 432, font, out var txtM, out var btnMMinus, out var btnMPlus, out var sldM);
 
             // Summary card
-            var summaryCard = CreateUIObject("SummaryCard", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 42));
+            var summaryCard = CreateUIObject("SummaryCard", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 36));
+            var leSum = summaryCard.AddComponent<LayoutElement>();
+            leSum.preferredHeight = 36;
             summaryCard.AddComponent<Image>().color = new Color(11f / 255f, 14f / 255f, 22f / 255f);
             var hlgSummary = summaryCard.AddComponent<HorizontalLayoutGroup>();
             hlgSummary.padding = new RectOffset(12, 12, 0, 0);
             hlgSummary.spacing = 10;
             hlgSummary.childAlignment = TextAnchor.MiddleCenter;
             hlgSummary.childControlWidth = false;
+            hlgSummary.childControlHeight = true;
 
             var densityText = CreateText(summaryCard.transform, "Плотность мин: 20.6%", font, 11, FontStyles.Bold, Color.white);
             var densityBadge = CreateText(summaryCard.transform, "[ОПТИМАЛЬНО]", font, 10, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
-            var spacerSC = CreateUIObject("Spacer", summaryCard.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            var spacerSC = CreateUIObject("Spacer", summaryCard.transform, Vector2.zero, Vector2.zero, new Vector2(0, 0));
             spacerSC.AddComponent<LayoutElement>().flexibleWidth = 1f;
             var totalCellsText = CreateText(summaryCard.transform, "Всего ячеек: 480 • 1-й клик: 100% безопасен", font, 10, FontStyles.Normal, new Color(146f / 255f, 157f / 255f, 178f / 255f));
 
             // Audio Box
-            var audioBox = CreateUIObject("AudioSettingsBox", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 72));
+            var audioBox = CreateUIObject("AudioSettingsBox", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 84));
+            var leAudio = audioBox.AddComponent<LayoutElement>();
+            leAudio.preferredHeight = 84;
             audioBox.AddComponent<Image>().color = new Color(17f / 255f, 22f / 255f, 34f / 255f, 0.95f);
             var vlgAudio = audioBox.AddComponent<VerticalLayoutGroup>();
-            vlgAudio.padding = new RectOffset(12, 12, 4, 4);
-            vlgAudio.spacing = 4;
+            vlgAudio.padding = new RectOffset(14, 14, 6, 6);
+            vlgAudio.spacing = 6;
             vlgAudio.childControlWidth = true;
+            vlgAudio.childControlHeight = true;
+            vlgAudio.childForceExpandHeight = false;
 
-            var volRow = CreateUIObject("VolRow", audioBox.transform, Vector2.zero, Vector2.zero, new Vector2(0, 22));
+            var volRow = CreateUIObject("VolRow", audioBox.transform, Vector2.zero, Vector2.zero, new Vector2(0, 24));
+            var leVR = volRow.AddComponent<LayoutElement>();
+            leVR.preferredHeight = 24;
             var hlgVR = volRow.AddComponent<HorizontalLayoutGroup>();
             hlgVR.spacing = 10;
             hlgVR.childAlignment = TextAnchor.MiddleLeft;
+            hlgVR.childControlWidth = false;
+            hlgVR.childControlHeight = true;
             CreateText(volRow.transform, "ГРОМКОСТЬ ЗВУКА:", font, 10, FontStyles.Bold, Color.white);
-            var sliderGo = CreateUIObject("VolumeSlider", volRow.transform, Vector2.zero, Vector2.zero, new Vector2(220, 18));
+            var sliderGo = CreateUIObject("VolumeSlider", volRow.transform, Vector2.zero, Vector2.zero, new Vector2(240, 18));
             var slider = sliderGo.AddComponent<Slider>();
             slider.minValue = 0f;
             slider.maxValue = 1f;
             slider.value = 0.8f;
 
-            var togglesRow = CreateUIObject("TogglesRow", audioBox.transform, Vector2.zero, Vector2.zero, new Vector2(0, 22));
+            var togglesRow = CreateUIObject("TogglesRow", audioBox.transform, Vector2.zero, Vector2.zero, new Vector2(0, 24));
+            var leTR = togglesRow.AddComponent<LayoutElement>();
+            leTR.preferredHeight = 24;
             var hlgToggles = togglesRow.AddComponent<HorizontalLayoutGroup>();
-            hlgToggles.spacing = 16;
+            hlgToggles.spacing = 20;
+            hlgToggles.childAlignment = TextAnchor.MiddleLeft;
+            hlgToggles.childControlWidth = false;
+            hlgToggles.childControlHeight = true;
 
             var muteTgl = CreateToggle(togglesRow.transform, "Режим «Без звука»", font);
             var tickTgl = CreateToggle(togglesRow.transform, "Тиканье таймера", font);
 
             // Action buttons
             var btnRow = CreateUIObject("ButtonRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 38));
+            var leBtns = btnRow.AddComponent<LayoutElement>();
+            leBtns.preferredHeight = 38;
             var hlgBtn = btnRow.AddComponent<HorizontalLayoutGroup>();
             hlgBtn.spacing = 12;
             hlgBtn.childAlignment = TextAnchor.MiddleRight;
             hlgBtn.childControlWidth = false;
+            hlgBtn.childControlHeight = true;
 
             var btnCancel = CreateActionButton(btnRow.transform, "Отмена", font, sBtnCyber);
             var btnOk = CreateActionButton(btnRow.transform, "Применить", font, sBtnCyber);
@@ -697,7 +760,7 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("LeaderboardsModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(620, 480));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(660, 540));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
@@ -707,16 +770,24 @@ namespace Minesweeper.Editor
             vlg.spacing = 8;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
 
             var title = CreateText(panel.transform, "Таблица рекордов", font, 16, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             title.alignment = TextAlignmentOptions.Center;
+            var leTitle = title.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 24;
 
             // Tabs row
             var tabsRow = CreateUIObject("TabsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 32));
+            var leTabs = tabsRow.AddComponent<LayoutElement>();
+            leTabs.preferredHeight = 32;
             var hlgTabs = tabsRow.AddComponent<HorizontalLayoutGroup>();
             hlgTabs.spacing = 6;
             hlgTabs.childAlignment = TextAnchor.MiddleCenter;
             hlgTabs.childControlWidth = true;
+            hlgTabs.childControlHeight = true;
 
             var tBeg = CreateNavTab(tabsRow.transform, "Новичок (9×9)", font, out var bgBeg, isPrimary: true);
             var tInt = CreateNavTab(tabsRow.transform, "Любитель (16×16)", font, out var bgInt);
@@ -725,38 +796,52 @@ namespace Minesweeper.Editor
 
             // Table Header
             var headerRow = CreateUIObject("TableHeader", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 26));
+            var leHdr = headerRow.AddComponent<LayoutElement>();
+            leHdr.preferredHeight = 26;
             headerRow.AddComponent<Image>().color = new Color(14f / 255f, 19f / 255f, 29f / 255f);
             var hlgHdr = headerRow.AddComponent<HorizontalLayoutGroup>();
             hlgHdr.padding = new RectOffset(16, 16, 0, 0);
-            hlgHdr.spacing = 10;
+            hlgHdr.spacing = 12;
             hlgHdr.childAlignment = TextAnchor.MiddleCenter;
             hlgHdr.childControlWidth = false;
+            hlgHdr.childControlHeight = true;
 
             CreateLabel(headerRow.transform, "РАНГ", 50, Color.gray, font);
-            CreateLabel(headerRow.transform, "ИГРОК", 240, Color.gray, font);
+            CreateLabel(headerRow.transform, "ИГРОК", 260, Color.gray, font);
             CreateLabel(headerRow.transform, "ВРЕМЯ", 100, Color.gray, font);
             CreateLabel(headerRow.transform, "ДАТА", 130, Color.gray, font);
 
-            var rowsCont = CreateUIObject("RowsContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 190));
+            var rowsCont = CreateUIObject("RowsContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 220));
+            var leRows = rowsCont.AddComponent<LayoutElement>();
+            leRows.preferredHeight = 220;
             var vlgRows = rowsCont.AddComponent<VerticalLayoutGroup>();
-            vlgRows.spacing = 3;
+            vlgRows.spacing = 4;
             vlgRows.childControlWidth = true;
+            vlgRows.childControlHeight = true;
+            vlgRows.childForceExpandHeight = false;
 
-            var noticeGo = CreateUIObject("CustomNotice", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 50));
+            var noticeGo = CreateUIObject("CustomNotice", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 40));
+            var leNotice = noticeGo.AddComponent<LayoutElement>();
+            leNotice.preferredHeight = 40;
             var noticeTxt = CreateText(noticeGo.transform, "ОСОБЫЙ РЕЖИМ НЕ УЧИТЫВАЕТСЯ В ТАБЛИЦЕ РЕКОРДОВ (FR-026)", font, 11, FontStyles.Normal, Color.yellow);
             noticeTxt.alignment = TextAlignmentOptions.Center;
             noticeGo.SetActive(false);
 
-            var bestBanner = CreateUIObject("BestBanner", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 28));
+            var bestBanner = CreateUIObject("BestBanner", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 30));
+            var leBest = bestBanner.AddComponent<LayoutElement>();
+            leBest.preferredHeight = 30;
             bestBanner.AddComponent<Image>().color = new Color(17f / 255f, 22f / 255f, 34f / 255f);
             var bestTxt = CreateText(bestBanner.transform, "ВАШ ЛУЧШИЙ РЕЗУЛЬТАТ: 014.2s [РАНГ #1 — CYBER_VIPER]", font, 11, FontStyles.Bold, Color.cyan);
             bestTxt.alignment = TextAlignmentOptions.Center;
 
             var btnRow = CreateUIObject("ButtonRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 38));
+            var leBtns = btnRow.AddComponent<LayoutElement>();
+            leBtns.preferredHeight = 38;
             var hlgBtn = btnRow.AddComponent<HorizontalLayoutGroup>();
             hlgBtn.spacing = 12;
             hlgBtn.childAlignment = TextAnchor.MiddleCenter;
             hlgBtn.childControlWidth = true;
+            hlgBtn.childControlHeight = true;
 
             var btnReset = CreateActionButton(btnRow.transform, "Сбросить рекорды", font, sBtnCyber);
             var btnClose = CreateActionButton(btnRow.transform, "Закрыть", font, sBtnCyber);
@@ -785,59 +870,80 @@ namespace Minesweeper.Editor
         {
             var modalRoot = CreateUIObject("HelpAboutModalRoot", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var backdrop = CreateModalBackdrop("Backdrop", modalRoot.transform);
-            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(580, 440));
+            var panel = CreateUIObject("Panel", backdrop.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(640, 520));
             var pImg = panel.AddComponent<Image>();
             pImg.sprite = sPanel;
             pImg.type = Image.Type.Sliced;
 
             var vlg = panel.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(20, 20, 16, 16);
-            vlg.spacing = 8;
+            vlg.padding = new RectOffset(24, 24, 18, 18);
+            vlg.spacing = 10;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
 
             var title = CreateText(panel.transform, "ПРАВИЛА ИГРЫ // СПРАВОЧНЫЙ МОДУЛЬ", font, 15, FontStyles.Bold, new Color(224f / 255f, 253f / 255f, 1f));
             title.alignment = TextAlignmentOptions.Center;
+            var leTitle = title.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 24;
 
             var tabsRow = CreateUIObject("TabsRow", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 32));
+            var leTabs = tabsRow.AddComponent<LayoutElement>();
+            leTabs.preferredHeight = 32;
             var hlgTabs = tabsRow.AddComponent<HorizontalLayoutGroup>();
             hlgTabs.spacing = 8;
             hlgTabs.childAlignment = TextAnchor.MiddleCenter;
             hlgTabs.childControlWidth = true;
+            hlgTabs.childControlHeight = true;
 
             var tabRules = CreateNavTab(tabsRow.transform, "Правила игры", font, out var bgRules, isPrimary: true);
             var tabAbout = CreateNavTab(tabsRow.transform, "О программе", font, out var bgAbout);
 
-            var rulesCont = CreateUIObject("RulesContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 240));
+            var rulesCont = CreateUIObject("RulesContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 340));
+            var leRules = rulesCont.AddComponent<LayoutElement>();
+            leRules.preferredHeight = 340;
+            leRules.flexibleHeight = 1;
             var vlgRules = rulesCont.AddComponent<VerticalLayoutGroup>();
-            vlgRules.padding = new RectOffset(14, 14, 10, 10);
-            vlgRules.spacing = 5;
+            vlgRules.padding = new RectOffset(16, 16, 12, 12);
+            vlgRules.spacing = 6;
+            vlgRules.childControlWidth = true;
+            vlgRules.childControlHeight = false;
             rulesCont.AddComponent<Image>().color = new Color(14f / 255f, 19f / 255f, 29f / 255f, 0.95f);
 
-            CreateText(rulesCont.transform, "• [ЛКМ] Открытие ячейки: первый клик всегда безопасен (зона 3x3).", font, 11, FontStyles.Normal, Color.white);
-            CreateText(rulesCont.transform, "• [ПКМ] Установка / снятие флажка: защищает ячейку от подрыва.", font, 11, FontStyles.Normal, Color.white);
-            CreateText(rulesCont.transform, "• [СКМ / Одновременно ЛКМ+ПКМ] Аккорд (Chording): быстрое раскрытие соседей.", font, 11, FontStyles.Normal, Color.white);
-            CreateText(rulesCont.transform, "• [Кнопка «Подсказка»] Подсвечивает безопасную ячейку со штрафом +5 сек.", font, 11, FontStyles.Normal, Color.yellow);
-            CreateText(rulesCont.transform, "• [Space / Кнопка «Пауза»] Приостановка таймера с сокрытием поля.", font, 11, FontStyles.Normal, Color.white);
-            CreateText(rulesCont.transform, "• [F2 / Клик по Дрону] Быстрый рестарт партии с сохранением сложности.", font, 11, FontStyles.Normal, Color.white);
-            CreateText(rulesCont.transform, "• Цель: открыть все свободные от мин ячейки за минимальное время.", font, 11, FontStyles.Bold, Color.cyan);
+            CreateText(rulesCont.transform, "• [ЛКМ] Открытие ячейки: первый клик всегда безопасен (зона 3x3).", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(rulesCont.transform, "• [ПКМ] Установка / снятие флажка: защищает ячейку от подрыва.", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(rulesCont.transform, "• [СКМ / Одновременно ЛКМ+ПКМ] Аккорд (Chording): быстрое раскрытие соседей.", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(rulesCont.transform, "• [Кнопка «Подсказка»] Подсвечивает безопасную ячейку со штрафом +5 сек.", font, 10.5f, FontStyles.Normal, Color.yellow);
+            CreateText(rulesCont.transform, "• [Space / Кнопка «Пауза»] Приостановка таймера с сокрытием поля.", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(rulesCont.transform, "• [F2 / Клик по Дрону] Быстрый рестарт партии с сохранением сложности.", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(rulesCont.transform, "• Цель: открыть все свободные от мин ячейки за минимальное время.", font, 10.5f, FontStyles.Bold, Color.cyan);
 
-            var aboutCont = CreateUIObject("AboutContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 240));
+            var aboutCont = CreateUIObject("AboutContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 340));
+            var leAbout = aboutCont.AddComponent<LayoutElement>();
+            leAbout.preferredHeight = 340;
+            leAbout.flexibleHeight = 1;
             var vlgAbout = aboutCont.AddComponent<VerticalLayoutGroup>();
-            vlgAbout.padding = new RectOffset(14, 14, 10, 10);
-            vlgAbout.spacing = 5;
+            vlgAbout.padding = new RectOffset(16, 16, 12, 12);
+            vlgAbout.spacing = 6;
+            vlgAbout.childControlWidth = true;
+            vlgAbout.childControlHeight = false;
             aboutCont.AddComponent<Image>().color = new Color(14f / 255f, 19f / 255f, 29f / 255f, 0.95f);
 
-            CreateText(aboutCont.transform, "Учебный проект по дисциплине: «Технологии разработки программно-информационных систем»", font, 11, FontStyles.Normal, Color.gray);
-            CreateText(aboutCont.transform, "Волгоградский государственный технический университет (ВолгГТУ), 2026 г.", font, 11, FontStyles.Normal, Color.gray);
-            CreateText(aboutCont.transform, "Преподаватель: доцент Рак Д.В.", font, 11, FontStyles.Normal, Color.white);
-            CreateText(aboutCont.transform, "Команда разработчиков (гр. ИВТ-1):", font, 12, FontStyles.Bold, Color.cyan);
-            CreateText(aboutCont.transform, "  • Тюрин С.С. — Тимлид / Архитектор (Team Lead / Architecture)", font, 11, FontStyles.Normal, Color.white);
-            CreateText(aboutCont.transform, "  • Игнатов М.Р. — Frontend-разработчик (Cyberpunk HUD UI)", font, 11, FontStyles.Normal, Color.white);
-            CreateText(aboutCont.transform, "  • Сапунков А.Р. — Backend-разработчик (Core / Game Mechanics)", font, 11, FontStyles.Normal, Color.white);
+            CreateText(aboutCont.transform, "Учебный проект по дисциплине: «Технологии разработки программно-информационных систем»", font, 10.5f, FontStyles.Normal, Color.gray);
+            CreateText(aboutCont.transform, "Волгоградский государственный технический университет (ВолгГТУ), 2026 г.", font, 10.5f, FontStyles.Normal, Color.gray);
+            CreateText(aboutCont.transform, "Преподаватель: доцент Рак Д.В.", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(aboutCont.transform, "Команда разработчиков (гр. ИВТ-1):", font, 11f, FontStyles.Bold, Color.cyan);
+            CreateText(aboutCont.transform, "  • Тюрин С.С. — Тимлид / Архитектор (Team Lead / Architecture)", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(aboutCont.transform, "  • Игнатов М.Р. — Frontend-разработчик (Cyberpunk HUD UI)", font, 10.5f, FontStyles.Normal, Color.white);
+            CreateText(aboutCont.transform, "  • Сапунков А.Р. — Backend-разработчик (Core / Game Mechanics)", font, 10.5f, FontStyles.Normal, Color.white);
             aboutCont.SetActive(false);
 
             var btnClose = CreateActionButton(panel.transform, "Закрыть", font, sBtnCyber);
+            var leBtn = btnClose.gameObject.AddComponent<LayoutElement>();
+            leBtn.preferredHeight = 36;
+            leBtn.preferredWidth = 140;
 
             var hm = modalRoot.AddComponent<HelpAboutModal>();
             SetPrivateField(hm, "_panel", backdrop);
@@ -913,6 +1019,8 @@ namespace Minesweeper.Editor
         {
             var corner = CreateUIObject("CornerBracket", parent, anchor, anchor, new Vector2(14, 14));
             corner.GetComponent<RectTransform>().anchoredPosition = offset;
+            var le = corner.AddComponent<LayoutElement>();
+            le.ignoreLayout = true;
             var hLine = CreateUIObject("H", corner.transform, new Vector2(anchor.x, anchor.y), new Vector2(anchor.x, anchor.y), new Vector2(14, 2));
             hLine.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x == 0 ? 7 : -7, anchor.y == 0 ? 1 : -1);
             hLine.AddComponent<Image>().color = color;
@@ -938,7 +1046,7 @@ namespace Minesweeper.Editor
             var btn = go.AddComponent<Button>();
             var txt = CreateText(go.transform, text, font, 11, FontStyles.Bold, isPrimary ? new Color(224f / 255f, 253f / 255f, 1f) : new Color(146f / 255f, 157f / 255f, 178f / 255f));
             txt.alignment = TextAlignmentOptions.Center;
-            txt.enableWordWrapping = false;
+            txt.textWrappingMode = TextWrappingModes.NoWrap;
             var rt = txt.GetComponent<RectTransform>();
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
             return btn;
@@ -988,7 +1096,7 @@ namespace Minesweeper.Editor
             }
 
             outText = CreateText(go.transform, label, font, 11, FontStyles.Bold, Color.white);
-            outText.enableWordWrapping = false;
+            outText.textWrappingMode = TextWrappingModes.NoWrap;
             outText.alignment = TextAlignmentOptions.MidlineLeft;
             outText.GetComponent<RectTransform>().sizeDelta = new Vector2(textWidth, 22);
 
@@ -1017,25 +1125,32 @@ namespace Minesweeper.Editor
 
         private static Button CreatePresetCard(Transform parent, string tag, string title, string subtitle, TMP_FontAsset font, Sprite sBtn, out Image indicator)
         {
-            var card = CreateUIObject("Card_" + title, parent, Vector2.zero, Vector2.zero, new Vector2(130, 54));
+            var card = CreateUIObject("Card_" + title, parent, Vector2.zero, Vector2.zero, new Vector2(140, 56));
             var img = card.AddComponent<Image>();
             img.sprite = sBtn;
             img.type = Image.Type.Sliced;
             var btn = card.AddComponent<Button>();
 
             var vlg = card.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(8, 8, 4, 4);
-            vlg.spacing = 1;
+            vlg.padding = new RectOffset(8, 8, 5, 5);
+            vlg.spacing = 2;
             vlg.childAlignment = TextAnchor.MiddleLeft;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
 
-            var topRow = CreateUIObject("TopRow", card.transform, Vector2.zero, Vector2.zero, new Vector2(114, 14));
+            var topRow = CreateUIObject("TopRow", card.transform, Vector2.zero, Vector2.zero, new Vector2(0, 14));
+            var leTR = topRow.AddComponent<LayoutElement>();
+            leTR.preferredHeight = 14;
             var hlgTR = topRow.AddComponent<HorizontalLayoutGroup>();
             hlgTR.childAlignment = TextAnchor.MiddleRight;
             hlgTR.childControlWidth = false;
+            hlgTR.childControlHeight = true;
 
             var tagTxt = CreateText(topRow.transform, tag, font, 9, FontStyles.Bold, new Color(146f / 255f, 157f / 255f, 178f / 255f));
-            tagTxt.enableWordWrapping = false;
-            var trSpacer = CreateUIObject("Spacer", topRow.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            tagTxt.textWrappingMode = TextWrappingModes.NoWrap;
+            var trSpacer = CreateUIObject("Spacer", topRow.transform, Vector2.zero, Vector2.zero, new Vector2(0, 0));
             trSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             var indGo = CreateUIObject("Indicator", topRow.transform, Vector2.zero, Vector2.zero, new Vector2(8, 8));
@@ -1043,16 +1158,21 @@ namespace Minesweeper.Editor
             indicator.color = new Color(1f, 1f, 1f, 0.2f);
 
             var tTitle = CreateText(card.transform, title, font, 11, FontStyles.Bold, Color.white);
-            tTitle.enableWordWrapping = false;
+            tTitle.textWrappingMode = TextWrappingModes.NoWrap;
+            var leTitle = tTitle.gameObject.AddComponent<LayoutElement>();
+            leTitle.preferredHeight = 16;
+
             var tSub = CreateText(card.transform, subtitle, font, 9, FontStyles.Normal, new Color(146f / 255f, 157f / 255f, 178f / 255f));
-            tSub.enableWordWrapping = false;
+            tSub.textWrappingMode = TextWrappingModes.NoWrap;
+            var leSub = tSub.gameObject.AddComponent<LayoutElement>();
+            leSub.preferredHeight = 14;
 
             return btn;
         }
 
         private static GameObject CreateStatTile(Transform parent, string title, string val, TMP_FontAsset font, out TextMeshProUGUI valText)
         {
-            var tile = CreateUIObject("Tile_" + title, parent, Vector2.zero, Vector2.zero, new Vector2(130, 56));
+            var tile = CreateUIObject("Tile_" + title, parent, Vector2.zero, Vector2.zero, new Vector2(130, 60));
             tile.AddComponent<Image>().color = new Color(11f / 255f, 14f / 255f, 22f / 255f);
             var vlg = tile.AddComponent<VerticalLayoutGroup>();
             vlg.padding = new RectOffset(6, 6, 6, 6);
@@ -1065,66 +1185,80 @@ namespace Minesweeper.Editor
 
             var tTitle = CreateText(tile.transform, title, font, 9, FontStyles.Bold, new Color(146f / 255f, 157f / 255f, 178f / 255f));
             tTitle.alignment = TextAlignmentOptions.Center;
-            tTitle.enableWordWrapping = false;
+            tTitle.textWrappingMode = TextWrappingModes.NoWrap;
             var leTitle = tTitle.gameObject.AddComponent<LayoutElement>();
             leTitle.preferredHeight = 16f;
 
             valText = CreateText(tile.transform, val, font, 16, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
             valText.alignment = TextAlignmentOptions.Center;
-            valText.enableWordWrapping = false;
+            valText.textWrappingMode = TextWrappingModes.NoWrap;
             var leVal = valText.gameObject.AddComponent<LayoutElement>();
-            leVal.preferredHeight = 24f;
+            leVal.preferredHeight = 26f;
 
             return tile;
         }
 
         private static GameObject CreateStepperWithSlider(Transform parent, string label, string val, int min, int max, TMP_FontAsset font, out TextMeshProUGUI valText, out Button btnMinus, out Button btnPlus, out Slider slider)
         {
-            var box = CreateUIObject("Stepper_" + label, parent, Vector2.zero, Vector2.zero, new Vector2(160, 95));
+            var box = CreateUIObject("Stepper_" + label, parent, Vector2.zero, Vector2.zero, new Vector2(190, 92));
             box.AddComponent<Image>().color = new Color(11f / 255f, 14f / 255f, 22f / 255f);
             var vlg = box.AddComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(6, 6, 4, 4);
-            vlg.spacing = 3;
+            vlg.padding = new RectOffset(8, 8, 6, 6);
+            vlg.spacing = 4;
             vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
 
-            var topRow = CreateUIObject("TopRow", box.transform, Vector2.zero, Vector2.zero, new Vector2(148, 14));
+            var topRow = CreateUIObject("TopRow", box.transform, Vector2.zero, Vector2.zero, new Vector2(0, 16));
+            var leTR = topRow.AddComponent<LayoutElement>();
+            leTR.preferredHeight = 16;
             var hlgTR = topRow.AddComponent<HorizontalLayoutGroup>();
             hlgTR.childAlignment = TextAnchor.MiddleLeft;
+            hlgTR.childControlWidth = false;
+            hlgTR.childControlHeight = true;
             var lbl = CreateText(topRow.transform, label, font, 10, FontStyles.Bold, Color.white);
-            lbl.enableWordWrapping = false;
-            var trSpacer = CreateUIObject("Spacer", topRow.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            lbl.textWrappingMode = TextWrappingModes.NoWrap;
+            var trSpacer = CreateUIObject("Spacer", topRow.transform, Vector2.zero, Vector2.zero, new Vector2(0, 0));
             trSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
             var rangeLbl = CreateText(topRow.transform, $"{min}—{max}", font, 9, FontStyles.Normal, Color.gray);
-            rangeLbl.enableWordWrapping = false;
+            rangeLbl.textWrappingMode = TextWrappingModes.NoWrap;
 
-            var stepRow = CreateUIObject("StepRow", box.transform, Vector2.zero, Vector2.zero, new Vector2(148, 28));
+            var stepRow = CreateUIObject("StepRow", box.transform, Vector2.zero, Vector2.zero, new Vector2(0, 30));
+            var leSR = stepRow.AddComponent<LayoutElement>();
+            leSR.preferredHeight = 30;
             stepRow.AddComponent<Image>().color = new Color(6f / 255f, 9f / 255f, 16f / 255f);
             var hlgSR = stepRow.AddComponent<HorizontalLayoutGroup>();
             hlgSR.padding = new RectOffset(4, 4, 2, 2);
             hlgSR.childAlignment = TextAnchor.MiddleCenter;
+            hlgSR.childControlWidth = false;
+            hlgSR.childControlHeight = true;
 
-            var minusGo = CreateUIObject("BtnMinus", stepRow.transform, Vector2.zero, Vector2.zero, new Vector2(24, 24));
+            var minusGo = CreateUIObject("BtnMinus", stepRow.transform, Vector2.zero, Vector2.zero, new Vector2(26, 26));
             minusGo.AddComponent<Image>().color = new Color(22f / 255f, 29f / 255f, 43f / 255f);
             btnMinus = minusGo.AddComponent<Button>();
             var txtMinus = CreateText(minusGo.transform, "—", font, 11, FontStyles.Bold, Color.white);
             txtMinus.alignment = TextAlignmentOptions.Center;
 
-            var midSpacer = CreateUIObject("Spacer", stepRow.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            var midSpacer = CreateUIObject("Spacer", stepRow.transform, Vector2.zero, Vector2.zero, new Vector2(0, 0));
             midSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             valText = CreateText(stepRow.transform, val, font, 16, FontStyles.Bold, new Color(0f, 242f / 255f, 254f / 255f));
             valText.alignment = TextAlignmentOptions.Center;
 
-            var midSpacer2 = CreateUIObject("Spacer2", stepRow.transform, Vector2.zero, Vector2.zero, Vector2.zero);
+            var midSpacer2 = CreateUIObject("Spacer2", stepRow.transform, Vector2.zero, Vector2.zero, new Vector2(0, 0));
             midSpacer2.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
-            var plusGo = CreateUIObject("BtnPlus", stepRow.transform, Vector2.zero, Vector2.zero, new Vector2(24, 24));
+            var plusGo = CreateUIObject("BtnPlus", stepRow.transform, Vector2.zero, Vector2.zero, new Vector2(26, 26));
             plusGo.AddComponent<Image>().color = new Color(22f / 255f, 29f / 255f, 43f / 255f);
             btnPlus = plusGo.AddComponent<Button>();
             var txtPlus = CreateText(plusGo.transform, "+", font, 13, FontStyles.Bold, Color.white);
             txtPlus.alignment = TextAlignmentOptions.Center;
 
-            var sldGo = CreateUIObject("Slider", box.transform, Vector2.zero, Vector2.zero, new Vector2(148, 14));
+            var sldGo = CreateUIObject("Slider", box.transform, Vector2.zero, Vector2.zero, new Vector2(0, 16));
+            var leSld = sldGo.AddComponent<LayoutElement>();
+            leSld.preferredHeight = 16;
             slider = sldGo.AddComponent<Slider>();
             slider.minValue = min;
             slider.maxValue = max;

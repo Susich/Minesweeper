@@ -144,9 +144,9 @@ namespace Minesweeper.UI
         {
             float spacing = 3f;
 
-            // Available area inside GridWrapper (deck is 560px tall, grid area is ~416px)
+            // Available area inside GridWrapper (deck is 570px tall, grid area is ~430px)
             float availW = 900f;
-            float availH = 416f;
+            float availH = 430f;
 
             float maxCellW = (availW - (spacing * (width - 1))) / width;
             float maxCellH = (availH - (spacing * (height - 1))) / height;
@@ -171,11 +171,11 @@ namespace Minesweeper.UI
                 _gridContainer.anchoredPosition = Vector2.zero;
             }
 
-            // Keep deck width responsive (between 820px and 1000px) and fixed height 560px (never overlaps top bar)
+            // Keep deck width responsive (between 820px and 1000px) and fixed height 570px (never overlaps top bar)
             if (_consoleFrame != null)
             {
                 float deckW = Mathf.Clamp(totalGridW + 64f, 820f, 1000f);
-                _consoleFrame.sizeDelta = new Vector2(deckW, 560f);
+                _consoleFrame.sizeDelta = new Vector2(deckW, 570f);
             }
 
             return cellSize;
@@ -252,7 +252,7 @@ namespace Minesweeper.UI
             tmp.fontSize = 18;
             tmp.fontStyle = TMPro.FontStyles.Bold;
             tmp.raycastTarget = false;
-            tmp.enableWordWrapping = false;
+            tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             tmp.overflowMode = TMPro.TextOverflowModes.Overflow;
             textGo.SetActive(false);
 

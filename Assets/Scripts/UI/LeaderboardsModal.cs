@@ -167,8 +167,8 @@ namespace Minesweeper.UI
             rowObj.transform.SetParent(_rowsContainer, false);
 
             var le = rowObj.GetComponent<LayoutElement>();
-            le.minHeight = 36;
-            le.preferredHeight = 38;
+            le.minHeight = 34;
+            le.preferredHeight = 36;
             le.flexibleWidth = 1f;
 
             var img = rowObj.GetComponent<Image>();
@@ -178,7 +178,7 @@ namespace Minesweeper.UI
                         new Color(18f / 255f, 24f / 255f, 35f / 255f, 0.6f);
 
             var hlg = rowObj.GetComponent<HorizontalLayoutGroup>();
-            hlg.padding = new RectOffset(16, 16, 2, 2);
+            hlg.padding = new RectOffset(16, 16, 0, 0);
             hlg.spacing = 12;
             hlg.childAlignment = TextAnchor.MiddleCenter;
             hlg.childControlWidth = false;
@@ -190,7 +190,7 @@ namespace Minesweeper.UI
                             rank == 2 ? new Color(0f, 242f / 255f, 254f / 255f) :
                             rank == 3 ? new Color(203f / 255f, 213f / 255f, 225f / 255f) :
                             new Color(148f / 255f, 163f / 255f, 184f / 255f);
-            var rankTxt = CreateLabel(rowObj.transform, $"#{rank}", 55, rankColor);
+            var rankTxt = CreateLabel(rowObj.transform, $"#{rank}", 50, rankColor);
             rankTxt.fontStyle = FontStyles.Bold;
             rankTxt.alignment = TextAlignmentOptions.Center;
 
@@ -202,12 +202,12 @@ namespace Minesweeper.UI
             // 3. Time
             var timeColor = rank == 1 ? new Color(251f / 255f, 191f / 255f, 36f / 255f) :
                             new Color(0f, 242f / 255f, 254f / 255f);
-            var timeTxt = CreateLabel(rowObj.transform, $"{entry.TimeSeconds:F1}s", 110, timeColor);
+            var timeTxt = CreateLabel(rowObj.transform, $"{entry.TimeSeconds:F1}s", 100, timeColor);
             timeTxt.fontStyle = FontStyles.Bold;
             timeTxt.alignment = TextAlignmentOptions.MidlineRight;
 
             // 4. Date
-            var dateTxt = CreateLabel(rowObj.transform, entry.Date, 140, new Color(148f / 255f, 163f / 255f, 184f / 255f));
+            var dateTxt = CreateLabel(rowObj.transform, entry.Date, 130, new Color(148f / 255f, 163f / 255f, 184f / 255f));
             dateTxt.alignment = TextAlignmentOptions.MidlineRight;
 
             return rowObj;
@@ -222,7 +222,7 @@ namespace Minesweeper.UI
             tmp.text = text;
             tmp.fontSize = 13;
             tmp.color = color;
-            tmp.enableWordWrapping = false;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
             var le = go.GetComponent<LayoutElement>();
             le.minWidth = width;
             le.preferredWidth = width;

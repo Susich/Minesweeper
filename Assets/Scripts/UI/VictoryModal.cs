@@ -145,7 +145,7 @@ namespace Minesweeper.UI
                 }
 
                 // Open Leaderboards modal
-                var lb = FindObjectOfType<LeaderboardsModal>(true);
+                var lb = FindFirstObjectByType<LeaderboardsModal>(FindObjectsInactive.Include);
                 if (lb != null)
                 {
                     lb.Show(gc.CurrentDifficulty.Level);
