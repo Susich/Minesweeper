@@ -165,22 +165,24 @@ namespace Minesweeper.UI
         {
             var rowObj = new GameObject($"Row_{rank}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
             rowObj.transform.SetParent(_rowsContainer, false);
+            var rt = rowObj.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(0, 32);
 
             var le = rowObj.GetComponent<LayoutElement>();
-            le.minHeight = 34;
-            le.preferredHeight = 36;
+            le.minHeight = 32;
+            le.preferredHeight = 32;
             le.flexibleWidth = 1f;
 
             var img = rowObj.GetComponent<Image>();
-            img.color = rank == 1 ? new Color(251f / 255f, 191f / 255f, 36f / 255f, 0.12f) :
-                        rank == 2 ? new Color(0f, 242f / 255f, 254f / 255f, 0.08f) :
-                        rank == 3 ? new Color(148f / 255f, 163f / 255f, 184f / 255f, 0.06f) :
-                        new Color(18f / 255f, 24f / 255f, 35f / 255f, 0.6f);
+            img.color = rank == 1 ? new Color(38f / 255f, 32f / 255f, 18f / 255f, 0.9f) :
+                        rank == 2 ? new Color(16f / 255f, 32f / 255f, 38f / 255f, 0.9f) :
+                        rank == 3 ? new Color(24f / 255f, 28f / 255f, 36f / 255f, 0.9f) :
+                        new Color(15f / 255f, 20f / 255f, 28f / 255f, 0.75f);
 
             var hlg = rowObj.GetComponent<HorizontalLayoutGroup>();
             hlg.padding = new RectOffset(16, 16, 0, 0);
-            hlg.spacing = 12;
-            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.spacing = 10;
+            hlg.childAlignment = TextAnchor.MiddleLeft;
             hlg.childControlWidth = false;
             hlg.childControlHeight = true;
             hlg.childForceExpandWidth = false;
@@ -192,10 +194,10 @@ namespace Minesweeper.UI
                             new Color(148f / 255f, 163f / 255f, 184f / 255f);
             var rankTxt = CreateLabel(rowObj.transform, $"#{rank}", 50, rankColor);
             rankTxt.fontStyle = FontStyles.Bold;
-            rankTxt.alignment = TextAlignmentOptions.Center;
+            rankTxt.alignment = TextAlignmentOptions.MidlineLeft;
 
             // 2. Operator Callsign
-            var nameTxt = CreateLabel(rowObj.transform, entry.PlayerName, 260, Color.white);
+            var nameTxt = CreateLabel(rowObj.transform, entry.PlayerName, 270, Color.white);
             nameTxt.fontStyle = FontStyles.Bold;
             nameTxt.alignment = TextAlignmentOptions.MidlineLeft;
 
@@ -207,7 +209,7 @@ namespace Minesweeper.UI
             timeTxt.alignment = TextAlignmentOptions.MidlineRight;
 
             // 4. Date
-            var dateTxt = CreateLabel(rowObj.transform, entry.Date, 130, new Color(148f / 255f, 163f / 255f, 184f / 255f));
+            var dateTxt = CreateLabel(rowObj.transform, entry.Date, 120, new Color(148f / 255f, 163f / 255f, 184f / 255f));
             dateTxt.alignment = TextAlignmentOptions.MidlineRight;
 
             return rowObj;
@@ -223,6 +225,7 @@ namespace Minesweeper.UI
             tmp.fontSize = 13;
             tmp.color = color;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            tmp.rectTransform.sizeDelta = new Vector2(width, 24);
             var le = go.GetComponent<LayoutElement>();
             le.minWidth = width;
             le.preferredWidth = width;
