@@ -23,6 +23,8 @@ namespace Minesweeper.UI
         [SerializeField] private Image _tabRulesBg;
         [SerializeField] private Image _tabAboutBg;
         [SerializeField] private Button _closeButton;
+        [SerializeField] private Button _headerCloseButton;
+        [SerializeField] private Button _exitButton;
 
         private static readonly Color ColorActiveTab = new Color(0f, 242f / 255f, 254f / 255f, 0.25f);
         private static readonly Color ColorInactiveTab = new Color(13f / 255f, 17f / 255f, 26f / 255f, 0.9f);
@@ -32,6 +34,21 @@ namespace Minesweeper.UI
             if (_tabRulesButton != null) _tabRulesButton.onClick.AddListener(ShowRules);
             if (_tabAboutButton != null) _tabAboutButton.onClick.AddListener(ShowAbout);
             if (_closeButton != null) _closeButton.onClick.AddListener(Hide);
+            if (_headerCloseButton != null && _headerCloseButton != _closeButton)
+            {
+                _headerCloseButton.onClick.AddListener(Hide);
+            }
+            if (_exitButton != null) _exitButton.onClick.AddListener(OnExitClicked);
+        }
+
+        /// <summary>«Выход из приложения» — пункт системного меню «Игра» (SRS UI-011).</summary>
+        public void OnExitClicked()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         public bool IsOpen => _panel != null ? _panel.activeSelf : gameObject.activeSelf;

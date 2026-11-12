@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Minesweeper.Editor
 {
@@ -11,6 +12,9 @@ namespace Minesweeper.Editor
         {
             string buildPath = "Builds/CyberMinesweeper.exe";
             string[] scenes = new string[] { "Assets/Scenes/CyberMinesweeper.unity" };
+
+            // HI-002: the product must render through the DirectX 11 graphics API.
+            ConfigureDirectX11();
 
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions
             {
@@ -40,6 +44,15 @@ namespace Minesweeper.Editor
                     EditorApplication.Exit(1);
                 }
             }
+        }
+
+        /// <summary>HI-002: для рендеринга используется графический API DirectX 11.</summary>
+        private static void ConfigureDirectX11()
+        {
+            var target = BuildTarget.StandaloneWindows64;
+            PlayerSettings.SetUseDefaultGraphicsAPIs(target, false);
+            PlayerSettings.SetGraphicsAPIs(target, new[] { GraphicsDeviceType.Direct3D11 });
+            Debug.Log("[BuildHelper] Graphics API for Windows player set to Direct3D11.");
         }
     }
 }

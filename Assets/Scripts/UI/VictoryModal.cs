@@ -18,6 +18,8 @@ namespace Minesweeper.UI
         [Header("Callsign Input")]
         [SerializeField] private TMP_InputField _callsignInput;
 
+        private bool _sanitizing = false;
+
         [Header("Buttons")]
         [SerializeField] private Button _saveRecordButton;
         [SerializeField] private TextMeshProUGUI _saveButtonText;
@@ -34,6 +36,7 @@ namespace Minesweeper.UI
             {
                 _callsignInput.characterLimit = 16;
                 _callsignInput.onValueChanged.AddListener(OnInputChanged);
+                _callsignInput.onEndEdit.AddListener(OnInputCommitted);
             }
         }
 
@@ -118,11 +121,58 @@ namespace Minesweeper.UI
 
         private void OnInputChanged(string text)
         {
+            // FR-023: допустимы только буквы, цифры, дефис, подчёркивание и пробелы.
+            if (_callsignInput != null)
+            {
+                string clean = SanitizeName(text, trimEnd: false);
+                if (clean != text)
+                {
+                    _sanitizing = true;
+                    _callsignInput.text = clean;
+                    _sanitizing = false;
+                }
+                text = clean;
+            }
+
             if (_saveRecordButton != null)
             {
-                // Validate non-empty per FR-023
+                // Блокируем подтверждение при пустом поле или строке из одних пробелов (FR-023).
                 _saveRecordButton.interactable = !string.IsNullOrWhiteSpace(text);
             }
+        }
+
+        private void OnInputCommitted(string text)
+        {
+            if (_callsignInput == null || _sanitizing) return;
+
+            string clean = SanitizeName(text, trimEnd: true);
+            if (clean != text)
+            {
+                _sanitizing = true;
+                _callsignInput.text = clean;
+                _sanitizing = false;
+            }
+        }
+
+        /// <summary>Фильтрует имя оператора по правилам FR-023.</summary>
+        private static string SanitizeName(string raw, bool trimEnd)
+        {
+            if (string.IsNullOrEmpty(raw)) return string.Empty;
+
+            var sb = new System.Text.StringBuilder(16);
+            foreach (char c in raw)
+            {
+                if (sb.Length >= 16) break;
+                if (char.IsLetter(c) || char.IsDigit(c) || c == '-' || c == '_' || c == ' ')
+                {
+                    sb.Append(c);
+                }
+            }
+
+            string result = sb.ToString();
+            result = result.TrimStart();                 // пробелы в начале запрещены
+            if (trimEnd) result = result.TrimEnd();       // пробелы в конце запрещены
+            return result;
         }
 
         private void OnSaveRecordClicked()

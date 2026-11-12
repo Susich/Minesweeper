@@ -30,19 +30,19 @@ namespace Minesweeper.UI
         [SerializeField] private Image _soundIconImage;
         [SerializeField] private Button _btnFullscreen;
         [SerializeField] private Button _btnSettingsGear;
-        [SerializeField] private TextMeshProUGUI _fpsText;
 
         [Header("Sound Toggle Icons")]
         public Sprite SoundOnSprite;
         public Sprite SoundOffSprite;
 
+        [Header("Tab Sprites")]
+        public Sprite ActiveTabSprite;
+        public Sprite InactiveTabSprite;
+
         [Header("Modals References")]
         [SerializeField] private SettingsModal _settingsModal;
         [SerializeField] private LeaderboardsModal _leaderboardsModal;
         [SerializeField] private HelpAboutModal _helpAboutModal;
-
-        private float _fpsTimer = 0f;
-        private int _fpsFrameCount = 0;
 
         private void Awake()
         {
@@ -81,20 +81,6 @@ namespace Minesweeper.UI
 
         private void Update()
         {
-            // Update FPS counter
-            _fpsFrameCount++;
-            _fpsTimer += Time.unscaledDeltaTime;
-            if (_fpsTimer >= 0.5f)
-            {
-                int fps = Mathf.RoundToInt(_fpsFrameCount / _fpsTimer);
-                if (_fpsText != null)
-                {
-                    _fpsText.text = $"FPS: {fps}";
-                }
-                _fpsFrameCount = 0;
-                _fpsTimer = 0f;
-            }
-
             // Escape key handling (HI-001)
             if (CheckEscapePressed())
             {
@@ -149,21 +135,19 @@ namespace Minesweeper.UI
         public void UpdateDifficultyPill(GameDifficulty diff)
         {
             if (_difficultyPillText == null || diff == null) return;
+            // Level names follow SRS FR-011 / Dizdok 4: «Новичок», «Любитель», «Профессионал».
             string levelName = diff.Level == DifficultyLevel.Beginner ? "Новичок (9×9)" :
-                               diff.Level == DifficultyLevel.Intermediate ? "Стандартный (16×16)" :
+                               diff.Level == DifficultyLevel.Intermediate ? "Любитель (16×16)" :
                                diff.Level == DifficultyLevel.Expert ? "Профессионал (30×16)" :
                                $"Особый ({diff.Width}×{diff.Height})";
             _difficultyPillText.text = $"{levelName} <color=#929db2>• {diff.Mines} мин</color>";
         }
 
+        /// <summary>Вкладка «Игра» — возвращает к игровому полю.</summary>
         public void OnNewGameClicked()
         {
             CloseAllModals();
             SetActiveTabHighlight(0);
-            if (GameController.Instance != null)
-            {
-                GameController.Instance.RestartGame();
-            }
         }
 
         public void OnRecordsClicked()
@@ -195,6 +179,27 @@ namespace Minesweeper.UI
             {
                 _helpAboutModal.Show(false);
             }
+        }
+
+        /// <summary>«О программе» — второй таб окна справки.</summary>
+        public void OnAboutClicked()
+        {
+            CloseAllModals();
+            SetActiveTabHighlight(3);
+            if (_helpAboutModal != null)
+            {
+                _helpAboutModal.Show(true);
+            }
+        }
+
+        /// <summary>«Выход» — пункт системного меню «Игра» (SRS UI-011).</summary>
+        public void OnExitClicked()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         private void OnDifficultyPillClicked()
@@ -235,13 +240,32 @@ namespace Minesweeper.UI
 
         public void SetActiveTabHighlight(int tabIndex)
         {
-            Color activeBg = new Color(0f, 242f / 255f, 254f / 255f, 0.15f);
-            Color inactiveBg = new Color(0, 0, 0, 0);
+            ApplyTabVisual(_gameTabBg, tabIndex == 0);
+            ApplyTabVisual(_recordsTabBg, tabIndex == 1);
+            ApplyTabVisual(_settingsTabBg, tabIndex == 2);
+            ApplyTabVisual(_helpTabBg, tabIndex == 3);
+        }
 
-            if (_gameTabBg != null) _gameTabBg.color = tabIndex == 0 ? activeBg : inactiveBg;
-            if (_recordsTabBg != null) _recordsTabBg.color = tabIndex == 1 ? activeBg : inactiveBg;
-            if (_settingsTabBg != null) _settingsTabBg.color = tabIndex == 2 ? activeBg : inactiveBg;
-            if (_helpTabBg != null) _helpTabBg.color = tabIndex == 3 ? activeBg : inactiveBg;
+        private void ApplyTabVisual(Image bg, bool isActive)
+        {
+            if (bg == null) return;
+
+            if (isActive && ActiveTabSprite != null)
+            {
+                bg.sprite = ActiveTabSprite;
+                bg.type = Image.Type.Sliced;
+                bg.color = Color.white;
+            }
+            else if (!isActive && InactiveTabSprite != null)
+            {
+                bg.sprite = InactiveTabSprite;
+                bg.type = Image.Type.Sliced;
+                bg.color = new Color(1f, 1f, 1f, 0f);
+            }
+            else
+            {
+                bg.color = isActive ? new Color(0f, 242f / 255f, 254f / 255f, 0.16f) : new Color(1f, 1f, 1f, 0f);
+            }
         }
 
         private void CloseAllModals()

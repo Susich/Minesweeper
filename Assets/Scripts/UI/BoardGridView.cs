@@ -15,6 +15,18 @@ namespace Minesweeper.UI
         [Header("Cell Prefab")]
         [SerializeField] private GameObject _cellPrefab;
 
+        [Header("Grid Metrics")]
+        [Tooltip("Width available for the grid inside the console frame, in canvas units.")]
+        [SerializeField] private float _availableWidth = 1233.6f;
+        [Tooltip("Height available for the grid inside the console frame, in canvas units.")]
+        [SerializeField] private float _availableHeight = 724.8f;
+        [SerializeField] private float _minCellSize = 24f;
+        [SerializeField] private float _maxCellSize = 55f;
+        [SerializeField] private float _cellSpacing = 3.6f;
+
+        /// <summary>The HUD is laid out for a native 1920x1080 canvas (one unit = one pixel).</summary>
+        private const float UI_SCALE = 1.2f;
+
         [Header("Cell Visual Resources")]
         public Sprite ClosedSprite;
         public Sprite HoverSprite;
@@ -142,17 +154,13 @@ namespace Minesweeper.UI
 
         private float AdjustGridAndFrame(int width, int height)
         {
-            float spacing = 3f;
+            float spacing = _cellSpacing;
 
-            // Available area inside GridWrapper (deck is 570px tall, grid area is ~430px)
-            float availW = 900f;
-            float availH = 430f;
+            float maxCellW = (_availableWidth - (spacing * (width - 1))) / width;
+            float maxCellH = (_availableHeight - (spacing * (height - 1))) / height;
 
-            float maxCellW = (availW - (spacing * (width - 1))) / width;
-            float maxCellH = (availH - (spacing * (height - 1))) / height;
-
-            // Clamped: between 22 and 44 px with integer pixel snap for crisp rendering
-            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), 22f, 44f));
+            // Clamped between the configured bounds with integer pixel snap for crisp rendering
+            float cellSize = Mathf.Floor(Mathf.Clamp(Mathf.Min(maxCellW, maxCellH), _minCellSize, _maxCellSize));
 
             if (_gridLayout != null)
             {
@@ -171,11 +179,12 @@ namespace Minesweeper.UI
                 _gridContainer.anchoredPosition = Vector2.zero;
             }
 
-            // Keep deck width responsive (between 820px and 1000px) and fixed height 570px (never overlaps top bar)
+            // The console deck hugs the minefield so the HUD keeps the proportions of the mockup.
             if (_consoleFrame != null)
             {
-                float deckW = Mathf.Clamp(totalGridW + 64f, 820f, 1000f);
-                _consoleFrame.sizeDelta = new Vector2(deckW, 570f);
+                float deckW = Mathf.Clamp(totalGridW + 84f * UI_SCALE, 620f * UI_SCALE, 1344f * UI_SCALE);
+                var frameRt = _consoleFrame;
+                frameRt.sizeDelta = new Vector2(deckW, frameRt.sizeDelta.y);
             }
 
             return cellSize;

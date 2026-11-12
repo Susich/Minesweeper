@@ -25,17 +25,17 @@ namespace Minesweeper.UI
 
         [Header("Custom Steppers")]
         [SerializeField] private GameObject _customContainer;
-        [SerializeField] private TextMeshProUGUI _widthText;
+        [SerializeField] private TMP_InputField _widthInput;
         [SerializeField] private Button _widthMinus;
         [SerializeField] private Button _widthPlus;
         [SerializeField] private Slider _widthSlider;
 
-        [SerializeField] private TextMeshProUGUI _heightText;
+        [SerializeField] private TMP_InputField _heightInput;
         [SerializeField] private Button _heightMinus;
         [SerializeField] private Button _heightPlus;
         [SerializeField] private Slider _heightSlider;
 
-        [SerializeField] private TextMeshProUGUI _minesText;
+        [SerializeField] private TMP_InputField _minesInput;
         [SerializeField] private Button _minesMinus;
         [SerializeField] private Button _minesPlus;
         [SerializeField] private Slider _minesSlider;
@@ -54,6 +54,11 @@ namespace Minesweeper.UI
         [SerializeField] private Button _okButton;
         [SerializeField] private Button _cancelButton;
         [SerializeField] private Button _closeButton;
+        [SerializeField] private Button _headerCloseButton;
+
+        [Header("Preset Card Sprites")]
+        public Sprite ActiveCardSprite;
+        public Sprite NormalCardSprite;
 
         private DifficultyLevel _selectedLevel = DifficultyLevel.Beginner;
         private int _customW = 16;
@@ -75,14 +80,17 @@ namespace Minesweeper.UI
             if (_widthMinus != null) _widthMinus.onClick.AddListener(() => AdjustWidth(-1));
             if (_widthPlus != null) _widthPlus.onClick.AddListener(() => AdjustWidth(1));
             if (_widthSlider != null) _widthSlider.onValueChanged.AddListener(val => SetWidth((int)val));
+            if (_widthInput != null) _widthInput.onEndEdit.AddListener(OnWidthTyped);
 
             if (_heightMinus != null) _heightMinus.onClick.AddListener(() => AdjustHeight(-1));
             if (_heightPlus != null) _heightPlus.onClick.AddListener(() => AdjustHeight(1));
             if (_heightSlider != null) _heightSlider.onValueChanged.AddListener(val => SetHeight((int)val));
+            if (_heightInput != null) _heightInput.onEndEdit.AddListener(OnHeightTyped);
 
             if (_minesMinus != null) _minesMinus.onClick.AddListener(() => AdjustMines(-5));
             if (_minesPlus != null) _minesPlus.onClick.AddListener(() => AdjustMines(5));
             if (_minesSlider != null) _minesSlider.onValueChanged.AddListener(val => SetMines((int)val));
+            if (_minesInput != null) _minesInput.onEndEdit.AddListener(OnMinesTyped);
 
             if (_volumeSlider != null) _volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
             if (_muteToggle != null) _muteToggle.onValueChanged.AddListener(OnMuteChanged);
@@ -91,6 +99,10 @@ namespace Minesweeper.UI
             if (_okButton != null) _okButton.onClick.AddListener(ApplyAndClose);
             if (_cancelButton != null) _cancelButton.onClick.AddListener(Hide);
             if (_closeButton != null) _closeButton.onClick.AddListener(Hide);
+            if (_headerCloseButton != null && _headerCloseButton != _closeButton)
+            {
+                _headerCloseButton.onClick.AddListener(Hide);
+            }
         }
 
         public bool IsOpen => _panel != null ? _panel.activeSelf : gameObject.activeSelf;
@@ -188,6 +200,25 @@ namespace Minesweeper.UI
             UpdateUI();
         }
 
+        // --- Typed values (SRS UI-012: поля ввода высоты, ширины и количества мин) ---
+        private void OnWidthTyped(string value)
+        {
+            if (int.TryParse(value, out int parsed)) SetWidth(parsed);
+            else UpdateUI();
+        }
+
+        private void OnHeightTyped(string value)
+        {
+            if (int.TryParse(value, out int parsed)) SetHeight(parsed);
+            else UpdateUI();
+        }
+
+        private void OnMinesTyped(string value)
+        {
+            if (int.TryParse(value, out int parsed)) SetMines(parsed);
+            else UpdateUI();
+        }
+
         private void OnVolumeChanged(float val)
         {
             if (AudioManager.Instance != null)
@@ -239,9 +270,9 @@ namespace Minesweeper.UI
                 _customContainer.SetActive(true); // Keep visible or dim when not custom
             }
 
-            if (_widthText != null) _widthText.text = _customW.ToString();
-            if (_heightText != null) _heightText.text = _customH.ToString();
-            if (_minesText != null) _minesText.text = _customM.ToString();
+            if (_widthInput != null && !_widthInput.isFocused) _widthInput.SetTextWithoutNotify(_customW.ToString());
+            if (_heightInput != null && !_heightInput.isFocused) _heightInput.SetTextWithoutNotify(_customH.ToString());
+            if (_minesInput != null && !_minesInput.isFocused) _minesInput.SetTextWithoutNotify(_customM.ToString());
 
             if (_widthSlider != null && (int)_widthSlider.value != _customW) _widthSlider.SetValueWithoutNotify(_customW);
             if (_heightSlider != null && (int)_heightSlider.value != _customH) _heightSlider.SetValueWithoutNotify(_customH);
@@ -303,12 +334,27 @@ namespace Minesweeper.UI
             var img = btn.GetComponent<Image>();
             if (img != null)
             {
-                img.color = isSelected ? ColorActiveBg : ColorInactiveBg;
+                if (isSelected && ActiveCardSprite != null)
+                {
+                    img.sprite = ActiveCardSprite;
+                    img.type = Image.Type.Sliced;
+                    img.color = Color.white;
+                }
+                else if (!isSelected && NormalCardSprite != null)
+                {
+                    img.sprite = NormalCardSprite;
+                    img.type = Image.Type.Sliced;
+                    img.color = Color.white;
+                }
+                else
+                {
+                    img.color = isSelected ? ColorActiveBg : ColorInactiveBg;
+                }
             }
 
             if (indicator != null)
             {
-                indicator.color = isSelected ? ColorActiveBorder : new Color(1f, 1f, 1f, 0.2f);
+                indicator.color = isSelected ? ColorActiveBorder : new Color(1f, 1f, 1f, 0.22f);
             }
         }
 
