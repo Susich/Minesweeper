@@ -10,7 +10,12 @@ namespace Minesweeper.Editor
         [MenuItem("Tools/Build Windows Standalone")]
         public static void BuildStandalonePlayer()
         {
-            string buildPath = "Builds/CyberMinesweeper.exe";
+            // The player is named after the product so the release archive and the
+            // window title always match (Player Settings -> Product Name).
+            string exeName = string.IsNullOrEmpty(PlayerSettings.productName)
+                ? "Minesweeper"
+                : PlayerSettings.productName;
+            string buildPath = "Builds/" + exeName + ".exe";
             string[] scenes = new string[] { "Assets/Scenes/CyberMinesweeper.unity" };
 
             // HI-002: the product must render through the DirectX 11 graphics API.
