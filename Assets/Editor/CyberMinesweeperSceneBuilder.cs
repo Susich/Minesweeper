@@ -111,7 +111,6 @@ namespace Minesweeper.Editor
             var sIconSoundOn = Load<Sprite>("Assets/Sprites/icon_sound_on.png");
             var sIconSoundOff = Load<Sprite>("Assets/Sprites/icon_sound_off.png");
             var sIconFullscreen = Load<Sprite>("Assets/Sprites/icon_fullscreen.png");
-            var sIconSettings = Load<Sprite>("Assets/Sprites/icon_settings.png");
             var sIconGamepad = Load<Sprite>("Assets/Sprites/icon_gamepad.png");
             var sIconTimer = Load<Sprite>("Assets/Sprites/icon_timer.png");
             var sIconChevron = Load<Sprite>("Assets/Sprites/icon_chevron_down.png");
@@ -152,7 +151,9 @@ namespace Minesweeper.Editor
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Expand keeps the full 1080 px logical height on non-16:9 windows, so the
+            // fixed-size tactical deck never slides under the top bar or past the bottom.
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
             var esGo = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(InputSystemUIInputModule));
 
@@ -174,14 +175,14 @@ namespace Minesweeper.Editor
 
             // 4. TOP NAVIGATION BAR ----------------------------------------
             var topBar = BuildTopBar(canvasGo.transform, fontMono, sIconGamepad, sIconSoundOn, sIconSoundOff,
-                sIconFullscreen, sIconSettings, sIconChevron, sBtnCyber, sTabActive, sDotSprite, sPanelModal,
+                sIconFullscreen, sIconChevron, sBtnCyber, sTabActive, sDotSprite, sPanelModal,
                 out var btnGame, out var gameTabBg,
                 out var btnRecords, out var recordsTabBg,
                 out var btnSettings, out var settingsTabBg,
                 out var btnHelp, out var helpTabBg,
                 out var btnDiffPill, out var diffPillText,
                 out var btnSound, out var soundIconImg,
-                out var btnFullscreen, out var btnGear);
+                out var btnFullscreen);
 
             // 5. BOTTOM SYSTEM STATUS BAR ----------------------------------
             var bottomBar = BuildBottomStatusBar(canvasGo.transform, fontMono);
@@ -210,7 +211,6 @@ namespace Minesweeper.Editor
             SetPrivateField(topMenuComp, "_btnSoundToggle", btnSound);
             SetPrivateField(topMenuComp, "_soundIconImage", soundIconImg);
             SetPrivateField(topMenuComp, "_btnFullscreen", btnFullscreen);
-            SetPrivateField(topMenuComp, "_btnSettingsGear", btnGear);
             SetPrivateField(topMenuComp, "_settingsModal", settingsModal2);
             SetPrivateField(topMenuComp, "_leaderboardsModal", leaderboardsModal2);
             SetPrivateField(topMenuComp, "_helpAboutModal", helpModal2);
@@ -236,7 +236,7 @@ namespace Minesweeper.Editor
         // TOP BAR
         // ==================================================================
         private static GameObject BuildTopBar(Transform parent, TMP_FontAsset fontMono,
-            Sprite sGamepad, Sprite sSoundOn, Sprite sSoundOff, Sprite sFullscreen, Sprite sSettingsGear, Sprite sChevron,
+            Sprite sGamepad, Sprite sSoundOn, Sprite sSoundOff, Sprite sFullscreen, Sprite sChevron,
             Sprite sBtnCyber, Sprite sTabActive, Sprite sDotSprite, Sprite sPanelModal,
             out Button btnGame, out Image gameTabBg,
             out Button btnRecords, out Image recordsTabBg,
@@ -244,7 +244,7 @@ namespace Minesweeper.Editor
             out Button btnHelp, out Image helpTabBg,
             out Button btnDiffPill, out TextMeshProUGUI diffPillText,
             out Button btnSound, out Image soundIconImg,
-            out Button btnFullscreen, out Button btnGear)
+            out Button btnFullscreen)
         {
             var topBar = CreateUIObject("TopMenuBar", parent, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 56));
             var topRt = topBar.GetComponent<RectTransform>();
@@ -343,9 +343,9 @@ namespace Minesweeper.Editor
             diffChevronImg.color = ColOnSurfaceVariant;
             diffChevronImg.raycastTarget = false;
 
-            btnSound = CreateIconButton("BtnSound", rightGroup.transform, sSoundOn, out soundIconImg).GetComponent<Button>();
-            btnFullscreen = CreateIconButton("BtnFullscreen", rightGroup.transform, sFullscreen, out _).GetComponent<Button>();
-            btnGear = CreateIconButton("BtnSettingsGear", rightGroup.transform, sSettingsGear, out _).GetComponent<Button>();
+            btnSound = CreateIconButton("BtnSound", rightGroup.transform, sSoundOn, out soundIconImg, 44f, 22f).GetComponent<Button>();
+            btnFullscreen = CreateIconButton("BtnFullscreen", rightGroup.transform, sFullscreen, out _, 44f, 22f).GetComponent<Button>();
+            // The gear duplicated the «Параметры» tab, so only the tab remains.
 
             // Hairline separator under the navigation bar
             var topDivider = CreateUIObject("TopDivider", topBar.transform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 1));
@@ -574,60 +574,126 @@ namespace Minesweeper.Editor
             // ---------- 4. FOOTER STATUS DECK ----------
             var footerDeck = CreateUIObject("FooterDeck", deck.transform, Vector2.zero, Vector2.zero, new Vector2(0, 32));
             footerDeck.AddComponent<Image>().color = ColSurfaceLow;
+            footerDeck.AddComponent<RectMask2D>();
             var fdLe = footerDeck.AddComponent<LayoutElement>();
             fdLe.preferredHeight = 32 * UI_SCALE;
             fdLe.minHeight = 32 * UI_SCALE;
 
             var hlgFd = footerDeck.AddComponent<HorizontalLayoutGroup>();
             hlgFd.padding = Pad(16, 16, 0, 0);
-            hlgFd.spacing = 10 * UI_SCALE;
-            hlgFd.childAlignment = TextAnchor.MiddleLeft;
-            hlgFd.childControlWidth = false;
-            hlgFd.childControlHeight = false;
+            hlgFd.spacing = 8 * UI_SCALE;
+            hlgFd.childAlignment = TextAnchor.MiddleCenter;
+            hlgFd.childControlWidth = true;
+            hlgFd.childControlHeight = true;
+            hlgFd.childForceExpandWidth = false;
+            hlgFd.childForceExpandHeight = true;
+
+            // 4.1 Flags Cluster (Icon + Text)
+            var flagsCluster = CreateUIObject("FlagsCluster", footerDeck.transform, Vector2.zero, Vector2.zero, new Vector2(110, 24));
+            var fcLe = flagsCluster.AddComponent<LayoutElement>();
+            fcLe.minWidth = 80 * UI_SCALE;
+            fcLe.preferredWidth = 110 * UI_SCALE;
+            fcLe.flexibleWidth = 0f;
+            var hlgFlags = flagsCluster.AddComponent<HorizontalLayoutGroup>();
+            hlgFlags.spacing = 6 * UI_SCALE;
+            hlgFlags.childAlignment = TextAnchor.MiddleLeft;
+            hlgFlags.childControlWidth = false;
+            hlgFlags.childControlHeight = false;
 
             if (sIconFlag != null)
             {
-                var fIconGo = CreateUIObject("Icon", footerDeck.transform, Vector2.zero, Vector2.zero, new Vector2(14, 14));
+                var fIconGo = CreateUIObject("Icon", flagsCluster.transform, Vector2.zero, Vector2.zero, new Vector2(14, 14));
                 var fIconImg = fIconGo.AddComponent<Image>();
                 fIconImg.sprite = sIconFlag;
                 fIconImg.color = ColError;
                 fIconImg.raycastTarget = false;
             }
 
-            var flagsCountText = CreateText(footerDeck.transform, "Флаги: 10 / 40", fontMono, 10, FontStyles.Normal, ColOnSurface, tracking: 2);
+            var flagsCountText = CreateText(flagsCluster.transform, "Флаги: 10 / 40", fontMono, 10, FontStyles.Normal, ColOnSurface, tracking: 2);
             flagsCountText.textWrappingMode = TextWrappingModes.NoWrap;
-            flagsCountText.GetComponent<RectTransform>().sizeDelta = new Vector2(104 * UI_SCALE, 20 * UI_SCALE);
+            flagsCountText.alignment = TextAlignmentOptions.MidlineLeft;
+            flagsCountText.GetComponent<RectTransform>().sizeDelta = new Vector2(90 * UI_SCALE, 20 * UI_SCALE);
 
+            // Spacer 1
             var fs1 = CreateUIObject("Spacer1", footerDeck.transform, Vector2.zero, Vector2.zero, Vector2.zero);
-            fs1.AddComponent<LayoutElement>().flexibleWidth = 1f;
+            var fs1Le = fs1.AddComponent<LayoutElement>();
+            fs1Le.minWidth = 0f;
+            fs1Le.preferredWidth = 0f;
+            fs1Le.flexibleWidth = 1f;
+
+            // 4.2 Difficulty Cluster (Icon + Text)
+            var diffCluster = CreateUIObject("DiffCluster", footerDeck.transform, Vector2.zero, Vector2.zero, new Vector2(180, 24));
+            var dcLe = diffCluster.AddComponent<LayoutElement>();
+            dcLe.minWidth = 140 * UI_SCALE;
+            dcLe.preferredWidth = 180 * UI_SCALE;
+            dcLe.flexibleWidth = 0f;
+            var hlgDiff = diffCluster.AddComponent<HorizontalLayoutGroup>();
+            hlgDiff.spacing = 6 * UI_SCALE;
+            hlgDiff.childAlignment = TextAnchor.MiddleLeft;
+            hlgDiff.childControlWidth = false;
+            hlgDiff.childControlHeight = false;
 
             if (sIconGrid != null)
             {
-                var gIconGo = CreateUIObject("Icon", footerDeck.transform, Vector2.zero, Vector2.zero, new Vector2(14, 14));
+                var gIconGo = CreateUIObject("Icon", diffCluster.transform, Vector2.zero, Vector2.zero, new Vector2(14, 14));
                 var gIconImg = gIconGo.AddComponent<Image>();
                 gIconImg.sprite = sIconGrid;
                 gIconImg.color = ColOnSurfaceVariant;
                 gIconImg.raycastTarget = false;
             }
 
-            var bottomDiffText = CreateText(footerDeck.transform, "Сложность: 16×16 • 40 мин", fontMono, 10, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
+            var bottomDiffText = CreateText(diffCluster.transform, "Сложность: 16×16 • 40 мин", fontMono, 10, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
             bottomDiffText.textWrappingMode = TextWrappingModes.NoWrap;
-            bottomDiffText.GetComponent<RectTransform>().sizeDelta = new Vector2(178 * UI_SCALE, 20 * UI_SCALE);
+            bottomDiffText.alignment = TextAlignmentOptions.MidlineLeft;
+            bottomDiffText.GetComponent<RectTransform>().sizeDelta = new Vector2(158 * UI_SCALE, 20 * UI_SCALE);
 
+            // Spacer 2
             var fs2 = CreateUIObject("Spacer2", footerDeck.transform, Vector2.zero, Vector2.zero, Vector2.zero);
-            fs2.AddComponent<LayoutElement>().flexibleWidth = 1f;
+            var fs2Le = fs2.AddComponent<LayoutElement>();
+            fs2Le.minWidth = 0f;
+            fs2Le.preferredWidth = 0f;
+            fs2Le.flexibleWidth = 1f;
 
-            var statusDot = CreatePulseDot(footerDeck.transform, ColPrimaryContainer, 8f, sDot).GetComponent<Image>();
-            var statusLabel = CreateText(footerDeck.transform, "В процессе", fontMono, 10, FontStyles.Bold, ColOnSurface, tracking: 2);
+            // 4.3 Status Cluster (PulseDot + Label)
+            var statusCluster = CreateUIObject("StatusCluster", footerDeck.transform, Vector2.zero, Vector2.zero, new Vector2(118, 24));
+            var scLe = statusCluster.AddComponent<LayoutElement>();
+            scLe.minWidth = 70 * UI_SCALE;
+            scLe.preferredWidth = 118 * UI_SCALE;
+            scLe.flexibleWidth = 0f;
+            var hlgStatus = statusCluster.AddComponent<HorizontalLayoutGroup>();
+            hlgStatus.spacing = 6 * UI_SCALE;
+            hlgStatus.childAlignment = TextAnchor.MiddleLeft;
+            hlgStatus.childControlWidth = false;
+            hlgStatus.childControlHeight = false;
+
+            var statusDot = CreatePulseDot(statusCluster.transform, ColPrimaryContainer, 8f, sDot).GetComponent<Image>();
+            var statusLabel = CreateText(statusCluster.transform, "В процессе", fontMono, 10, FontStyles.Bold, ColOnSurface, tracking: 2);
             statusLabel.textWrappingMode = TextWrappingModes.NoWrap;
-            statusLabel.GetComponent<RectTransform>().sizeDelta = new Vector2(86 * UI_SCALE, 20 * UI_SCALE);
+            statusLabel.alignment = TextAlignmentOptions.MidlineLeft;
+            statusLabel.GetComponent<RectTransform>().sizeDelta = new Vector2(102 * UI_SCALE, 20 * UI_SCALE);
 
+            // Spacer 3
             var fs3 = CreateUIObject("Spacer3", footerDeck.transform, Vector2.zero, Vector2.zero, Vector2.zero);
-            fs3.AddComponent<LayoutElement>().flexibleWidth = 1f;
+            var fs3Le = fs3.AddComponent<LayoutElement>();
+            fs3Le.minWidth = 0f;
+            fs3Le.preferredWidth = 0f;
+            fs3Le.flexibleWidth = 1f;
 
-            var shortcutText = CreateText(footerDeck.transform, "[Пробел / F2 — Рестарт]", fontMono, 10, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
+            // 4.4 Shortcut Hint
+            var shortcutCluster = CreateUIObject("ShortcutCluster", footerDeck.transform, Vector2.zero, Vector2.zero, new Vector2(160, 24));
+            var shLe = shortcutCluster.AddComponent<LayoutElement>();
+            shLe.minWidth = 120 * UI_SCALE;
+            shLe.preferredWidth = 160 * UI_SCALE;
+            shLe.flexibleWidth = 0f;
+            var hlgShortcut = shortcutCluster.AddComponent<HorizontalLayoutGroup>();
+            hlgShortcut.childAlignment = TextAnchor.MiddleRight;
+            hlgShortcut.childControlWidth = false;
+            hlgShortcut.childControlHeight = false;
+
+            var shortcutText = CreateText(shortcutCluster.transform, "[Пробел / F2 — Рестарт]", fontMono, 10, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
             shortcutText.textWrappingMode = TextWrappingModes.NoWrap;
-            shortcutText.GetComponent<RectTransform>().sizeDelta = new Vector2(160 * UI_SCALE, 20 * UI_SCALE);
+            shortcutText.alignment = TextAlignmentOptions.MidlineRight;
+            shortcutText.GetComponent<RectTransform>().sizeDelta = new Vector2(158 * UI_SCALE, 20 * UI_SCALE);
 
             // ---------- Wire HeaderStatusView ----------
             headerStatusView = headerDeck.AddComponent<HeaderStatusView>();
@@ -1087,7 +1153,8 @@ namespace Minesweeper.Editor
             hlgToggles.childControlWidth = false;
             hlgToggles.childControlHeight = true;
 
-            var muteTgl = CreateToggle(togglesRow.transform, "Режим «Без звука»", font);
+            // Mute is toggled by the speaker button in the top bar, so the audio block
+            // only exposes the timer tick option.
             var tickTgl = CreateToggle(togglesRow.transform, "Тиканье таймера", font);
 
             // ---------- Footer ----------
@@ -1139,7 +1206,6 @@ namespace Minesweeper.Editor
             SetPrivateField(sm, "_densityStatusBadge", densityBadge);
             SetPrivateField(sm, "_totalCellsText", totalCellsText);
             SetPrivateField(sm, "_volumeSlider", slider);
-            SetPrivateField(sm, "_muteToggle", muteTgl);
             SetPrivateField(sm, "_timerTickToggle", tickTgl);
             SetPrivateField(sm, "_okButton", btnOk);
             SetPrivateField(sm, "_cancelButton", btnCancel);
@@ -1253,7 +1319,7 @@ namespace Minesweeper.Editor
             var tBeg = CreateNavTab(tabsRow.transform, "Новичок (9×9)", font, sTabInactive, sTabActive, out var bgBeg, isPrimary: true, width: 150);
             var tInt = CreateNavTab(tabsRow.transform, "Любитель (16×16)", font, sTabInactive, sTabActive, out var bgInt, width: 170);
             var tExp = CreateNavTab(tabsRow.transform, "Профессионал (30×16)", font, sTabInactive, sTabActive, out var bgExp, width: 200);
-            var tCust = CreateNavTab(tabsRow.transform, "Особый", font, sTabInactive, sTabActive, out var bgCust, width: 110);
+            // Custom games are not tracked in the record registry (FR-026), so there is no «Особый» tab.
 
             // ---------- Table header ----------
             var headerTable = CreateUIObject("TableHeader", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 30));
@@ -1267,13 +1333,13 @@ namespace Minesweeper.Editor
             hlgHdr.childControlWidth = false;
             hlgHdr.childControlHeight = true;
 
-            CreateLabel(headerTable.transform, "РАНГ", 52, ColOnSurfaceVariant, font);
-            CreateLabel(headerTable.transform, "ИГРОК", 250, ColOnSurfaceVariant, font);
-            CreateLabel(headerTable.transform, "ВРЕМЯ", 100, ColOnSurfaceVariant, font);
-            CreateLabel(headerTable.transform, "ЗВУК/С", 86, ColOnSurfaceVariant, font);
-            CreateLabel(headerTable.transform, "ТОЧНОСТЬ", 104, ColOnSurfaceVariant, font);
-            CreateLabel(headerTable.transform, "ДАТА", 130, ColOnSurfaceVariant, font);
-            CreateLabel(headerTable.transform, "РЕПЛЕЙ", 70, ColOnSurfaceVariant, font);
+            CreateLabel(headerTable.transform, "РАНГ", 34, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "ИГРОК", 250, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "ВРЕМЯ", 100, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineRight;
+            CreateLabel(headerTable.transform, "ЗВУК/С", 86, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "ТОЧНОСТЬ", 104, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "ДАТА", 130, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "РЕПЛЕЙ", 45, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
 
             // ---------- Rows ----------
             var rowsCont = CreateUIObject("RowsContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 240));
@@ -1285,15 +1351,6 @@ namespace Minesweeper.Editor
             vlgRows.childControlWidth = true;
             vlgRows.childControlHeight = true;
             vlgRows.childForceExpandHeight = false;
-
-            var noticeGo = CreateUIObject("CustomNotice", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 40));
-            var leNotice = noticeGo.AddComponent<LayoutElement>();
-            leNotice.preferredHeight = 40 * UI_SCALE;
-            noticeGo.AddComponent<Image>().color = ColSurfaceLow;
-            var noticeTxt = CreateText(noticeGo.transform, "ОСОБЫЙ РЕЖИМ НЕ УЧИТЫВАЕТСЯ В ТАБЛИЦЕ РЕКОРДОВ (FR-025)", font, 11, FontStyles.Normal, ColAmber, tracking: 3);
-            noticeTxt.alignment = TextAlignmentOptions.Center;
-            noticeTxt.GetComponent<RectTransform>().sizeDelta = new Vector2(800 * UI_SCALE, 40 * UI_SCALE);
-            noticeGo.SetActive(false);
 
             // ---------- Best result banner ----------
             var bestBanner = CreateUIObject("BestBanner", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 46));
@@ -1309,13 +1366,14 @@ namespace Minesweeper.Editor
 
             var bestTxt = CreateText(bestBanner.transform, "ВАШ ЛУЧШИЙ РЕЗУЛЬТАТ: 028.5s [РАНГ #1 — CYBER_VIPER]", font, 11, FontStyles.Bold, ColPrimaryContainer, tracking: 2);
             bestTxt.textWrappingMode = TextWrappingModes.NoWrap;
-            bestTxt.GetComponent<RectTransform>().sizeDelta = new Vector2(560 * UI_SCALE, 24 * UI_SCALE);
+            bestTxt.GetComponent<RectTransform>().sizeDelta = new Vector2(520 * UI_SCALE, 24 * UI_SCALE);
 
             var bestSpacer = CreateUIObject("Spacer", bestBanner.transform, Vector2.zero, Vector2.zero, Vector2.zero);
             bestSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
             var bestStat = CreateText(bestBanner.transform, "Точность: 98.4%    ЗВУК/С: 4.10", font, 11, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
             bestStat.textWrappingMode = TextWrappingModes.NoWrap;
+            bestStat.alignment = TextAlignmentOptions.MidlineRight;
             bestStat.GetComponent<RectTransform>().sizeDelta = new Vector2(280 * UI_SCALE, 24 * UI_SCALE);
 
             // ---------- Footer buttons ----------
@@ -1338,13 +1396,10 @@ namespace Minesweeper.Editor
             SetPrivateField(lm, "_tabBeginner", tBeg);
             SetPrivateField(lm, "_tabIntermediate", tInt);
             SetPrivateField(lm, "_tabExpert", tExp);
-            SetPrivateField(lm, "_tabCustom", tCust);
             SetPrivateField(lm, "_tabBeginnerBg", bgBeg);
             SetPrivateField(lm, "_tabIntermediateBg", bgInt);
             SetPrivateField(lm, "_tabExpertBg", bgExp);
-            SetPrivateField(lm, "_tabCustomBg", bgCust);
             SetPrivateField(lm, "_rowsContainer", rowsCont.transform);
-            SetPrivateField(lm, "_customNoticeObject", noticeGo);
             SetPrivateField(lm, "_bestResultText", bestTxt);
             SetPrivateField(lm, "_bestStatsText", bestStat);
             SetPrivateField(lm, "_resetScoresButton", btnReset);
@@ -1689,14 +1744,14 @@ namespace Minesweeper.Editor
             return btn;
         }
 
-        private static GameObject CreateIconButton(string name, Transform parent, Sprite icon, out Image iconImg)
+        private static GameObject CreateIconButton(string name, Transform parent, Sprite icon, out Image iconImg, float size = 34f, float iconSize = 16f)
         {
-            var go = CreateUIObject(name, parent, Vector2.zero, Vector2.zero, new Vector2(34, 34));
+            var go = CreateUIObject(name, parent, Vector2.zero, Vector2.zero, new Vector2(size, size));
             var img = go.AddComponent<Image>();
             img.color = ColSurfaceLow;
             var btn = go.AddComponent<Button>();
 
-            var iconGo = CreateUIObject("Icon", go.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(16, 16));
+            var iconGo = CreateUIObject("Icon", go.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(iconSize, iconSize));
             iconImg = iconGo.AddComponent<Image>();
             iconImg.sprite = icon;
             iconImg.color = ColOnSurfaceVariant;
@@ -1989,7 +2044,7 @@ namespace Minesweeper.Editor
             textComp.color = ColPrimaryContainer;
             textComp.characterSpacing = 4;
             textComp.alignment = TextAlignmentOptions.Center;
-            textComp.enableWordWrapping = false;
+            textComp.textWrappingMode = TextWrappingModes.NoWrap;
             textComp.raycastTarget = false;
 
             valInput = valueGo.AddComponent<TMP_InputField>();

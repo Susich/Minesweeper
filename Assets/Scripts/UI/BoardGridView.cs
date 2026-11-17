@@ -182,7 +182,7 @@ namespace Minesweeper.UI
             // The console deck hugs the minefield so the HUD keeps the proportions of the mockup.
             if (_consoleFrame != null)
             {
-                float deckW = Mathf.Clamp(totalGridW + 84f * UI_SCALE, 620f * UI_SCALE, 1344f * UI_SCALE);
+                float deckW = Mathf.Clamp(totalGridW + 84f * UI_SCALE, 700f * UI_SCALE, 1344f * UI_SCALE);
                 var frameRt = _consoleFrame;
                 frameRt.sizeDelta = new Vector2(deckW, frameRt.sizeDelta.y);
             }

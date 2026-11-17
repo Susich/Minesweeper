@@ -160,8 +160,12 @@ namespace Minesweeper.Editor
                 case "help":
                     ShowModal<HelpAboutModal>(m => m.Show(false));
                     break;
+                case "novice":
+                case "beginner":
+                    PopulateBoard(9, 9);
+                    break;
                 default:
-                    PopulateBoard();
+                    PopulateBoard(16, 16);
                     break;
             }
         }
@@ -223,14 +227,21 @@ namespace Minesweeper.Editor
         }
 
         /// <summary>Fills the grid with a deterministic, mockup-like board of numbers and flags.</summary>
-        private static void PopulateBoard()
+        private static void PopulateBoard(int width = 16, int height = 16)
         {
             var boardView = Object.FindFirstObjectByType<BoardGridView>(FindObjectsInactive.Include);
             if (boardView == null) return;
 
-            const int width = 16;
-            const int height = 16;
             boardView.BuildGrid(width, height);
+
+            var headerStatus = Object.FindFirstObjectByType<HeaderStatusView>(FindObjectsInactive.Include);
+            if (headerStatus != null)
+            {
+                var level = width == 9 ? DifficultyLevel.Beginner : (width == 16 ? DifficultyLevel.Intermediate : DifficultyLevel.Expert);
+                var diff = GameDifficulty.Create(level);
+                headerStatus.UpdateDifficultyDisplay(diff);
+                headerStatus.UpdateMineDisplay(diff.Mines);
+            }
 
             var cells = boardView.GetComponentsInChildren<CellView>(true);
             if (cells == null) return;

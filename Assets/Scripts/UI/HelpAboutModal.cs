@@ -26,6 +26,8 @@ namespace Minesweeper.UI
         [SerializeField] private Button _headerCloseButton;
         [SerializeField] private Button _exitButton;
 
+        private bool _pausedByModal;
+
         private static readonly Color ColorActiveTab = new Color(0f, 242f / 255f, 254f / 255f, 0.25f);
         private static readonly Color ColorInactiveTab = new Color(13f / 255f, 17f / 255f, 26f / 255f, 0.9f);
 
@@ -61,11 +63,12 @@ namespace Minesweeper.UI
         public void Show(bool showAbout = false)
         {
             if (_panel == null) _panel = gameObject;
+            bool wasOpen = _panel.activeSelf;
             _panel.SetActive(true);
 
-            if (GameController.Instance != null)
+            if (!wasOpen && GameController.Instance != null)
             {
-                GameController.Instance.PauseGame();
+                _pausedByModal = GameController.Instance.PauseForModal();
             }
 
             if (showAbout) ShowAbout();
@@ -77,9 +80,13 @@ namespace Minesweeper.UI
             if (_panel == null) _panel = gameObject;
             _panel.SetActive(false);
 
-            if (GameController.Instance != null)
+            if (_pausedByModal)
             {
-                GameController.Instance.ResumeGame();
+                _pausedByModal = false;
+                if (GameController.Instance != null)
+                {
+                    GameController.Instance.ResumeAfterModal(true);
+                }
             }
         }
 

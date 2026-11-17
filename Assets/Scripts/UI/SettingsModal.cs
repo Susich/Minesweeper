@@ -47,7 +47,9 @@ namespace Minesweeper.UI
 
         [Header("Audio Settings")]
         [SerializeField] private Slider _volumeSlider;
-        [SerializeField] private Toggle _muteToggle;
+        // Legacy scene reference: mute is controlled by the speaker button in the top
+        // bar, so the duplicate checkbox is removed from the settings modal at runtime.
+        [SerializeField, HideInInspector] private Toggle _muteToggle;
         [SerializeField] private Toggle _timerTickToggle;
 
         [Header("Modal Actions")]
@@ -64,6 +66,7 @@ namespace Minesweeper.UI
         private int _customW = 16;
         private int _customH = 16;
         private int _customM = 40;
+        private bool _pausedByModal;
 
         private static readonly Color ColorActiveBorder = new Color(0f, 242f / 255f, 254f / 255f, 1f);
         private static readonly Color ColorInactiveBorder = new Color(38f / 255f, 49f / 255f, 68f / 255f, 1f);
@@ -72,6 +75,16 @@ namespace Minesweeper.UI
 
         private void Awake()
         {
+            // The mute toggle duplicates the speaker button in the top bar; only the
+            // timer-tick option stays in the audio block.
+            if (_muteToggle != null)
+            {
+                _muteToggle.onValueChanged.RemoveAllListeners();
+                _muteToggle.gameObject.SetActive(false);
+                Destroy(_muteToggle.gameObject);
+                _muteToggle = null;
+            }
+
             if (_btnBeginner != null) _btnBeginner.onClick.AddListener(() => SelectDifficulty(DifficultyLevel.Beginner));
             if (_btnIntermediate != null) _btnIntermediate.onClick.AddListener(() => SelectDifficulty(DifficultyLevel.Intermediate));
             if (_btnExpert != null) _btnExpert.onClick.AddListener(() => SelectDifficulty(DifficultyLevel.Expert));
@@ -93,7 +106,6 @@ namespace Minesweeper.UI
             if (_minesInput != null) _minesInput.onEndEdit.AddListener(OnMinesTyped);
 
             if (_volumeSlider != null) _volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
-            if (_muteToggle != null) _muteToggle.onValueChanged.AddListener(OnMuteChanged);
             if (_timerTickToggle != null) _timerTickToggle.onValueChanged.AddListener(OnTimerTickChanged);
 
             if (_okButton != null) _okButton.onClick.AddListener(ApplyAndClose);
@@ -115,11 +127,12 @@ namespace Minesweeper.UI
         public void Show()
         {
             if (_panel == null) _panel = gameObject;
+            bool wasOpen = _panel.activeSelf;
             _panel.SetActive(true);
 
-            if (GameController.Instance != null)
+            if (!wasOpen && GameController.Instance != null)
             {
-                GameController.Instance.PauseGame();
+                _pausedByModal = GameController.Instance.PauseForModal();
 
                 var diff = GameController.Instance.CurrentDifficulty;
                 _selectedLevel = diff != null ? diff.Level : DifficultyLevel.Intermediate;
@@ -128,11 +141,17 @@ namespace Minesweeper.UI
                 _customM = GameController.Instance.Settings.CustomMines;
 
                 if (_volumeSlider != null) _volumeSlider.value = GameController.Instance.Settings.SoundVolume;
-                if (_muteToggle != null) _muteToggle.isOn = GameController.Instance.Settings.IsMuted;
                 if (_timerTickToggle != null) _timerTickToggle.isOn = GameController.Instance.Settings.TimerTickEnabled;
             }
 
             UpdateUI();
+        }
+
+        /// <summary>Opens the dialog with the «Особые параметры» preset selected.</summary>
+        public void ShowCustom()
+        {
+            Show();
+            SelectDifficulty(DifficultyLevel.Custom);
         }
 
         public void Hide()
@@ -140,9 +159,13 @@ namespace Minesweeper.UI
             if (_panel == null) _panel = gameObject;
             _panel.SetActive(false);
 
-            if (GameController.Instance != null)
+            if (_pausedByModal)
             {
-                GameController.Instance.ResumeGame();
+                _pausedByModal = false;
+                if (GameController.Instance != null)
+                {
+                    GameController.Instance.ResumeAfterModal(true);
+                }
             }
         }
 
@@ -152,9 +175,22 @@ namespace Minesweeper.UI
             UpdateUI();
         }
 
+        /// <summary>
+        /// Copies the values of the currently selected preset into the custom editor,
+        /// so pressing +/− right after choosing a preset starts from what the player sees
+        /// instead of jumping back to stale custom values (issue #5).
+        /// </summary>
+        private void BeginCustomAdjustment()
+        {
+            if (_selectedLevel == DifficultyLevel.Custom) return;
+
+            GetDisplayedParameters(out _customW, out _customH, out _customM);
+            _selectedLevel = DifficultyLevel.Custom;
+        }
+
         private void AdjustWidth(int delta)
         {
-            _selectedLevel = DifficultyLevel.Custom;
+            BeginCustomAdjustment();
             _customW += delta;
             GameDifficulty.ValidateCustom(ref _customW, ref _customH, ref _customM);
             UpdateUI();
@@ -162,7 +198,7 @@ namespace Minesweeper.UI
 
         private void SetWidth(int val)
         {
-            _selectedLevel = DifficultyLevel.Custom;
+            BeginCustomAdjustment();
             _customW = val;
             GameDifficulty.ValidateCustom(ref _customW, ref _customH, ref _customM);
             UpdateUI();
@@ -170,7 +206,7 @@ namespace Minesweeper.UI
 
         private void AdjustHeight(int delta)
         {
-            _selectedLevel = DifficultyLevel.Custom;
+            BeginCustomAdjustment();
             _customH += delta;
             GameDifficulty.ValidateCustom(ref _customW, ref _customH, ref _customM);
             UpdateUI();
@@ -178,7 +214,7 @@ namespace Minesweeper.UI
 
         private void SetHeight(int val)
         {
-            _selectedLevel = DifficultyLevel.Custom;
+            BeginCustomAdjustment();
             _customH = val;
             GameDifficulty.ValidateCustom(ref _customW, ref _customH, ref _customM);
             UpdateUI();
@@ -186,7 +222,7 @@ namespace Minesweeper.UI
 
         private void AdjustMines(int delta)
         {
-            _selectedLevel = DifficultyLevel.Custom;
+            BeginCustomAdjustment();
             _customM += delta;
             GameDifficulty.ValidateCustom(ref _customW, ref _customH, ref _customM);
             UpdateUI();
@@ -194,7 +230,7 @@ namespace Minesweeper.UI
 
         private void SetMines(int val)
         {
-            _selectedLevel = DifficultyLevel.Custom;
+            BeginCustomAdjustment();
             _customM = val;
             GameDifficulty.ValidateCustom(ref _customW, ref _customH, ref _customM);
             UpdateUI();
@@ -232,19 +268,6 @@ namespace Minesweeper.UI
             }
         }
 
-        private void OnMuteChanged(bool muted)
-        {
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.SetMute(muted);
-            }
-            if (GameController.Instance != null)
-            {
-                GameController.Instance.Settings.IsMuted = muted;
-                GameController.Instance.SaveMgr.SaveSettings(GameController.Instance.Settings);
-            }
-        }
-
         private void OnTimerTickChanged(bool enabled)
         {
             if (AudioManager.Instance != null)
@@ -255,6 +278,25 @@ namespace Minesweeper.UI
             {
                 GameController.Instance.Settings.TimerTickEnabled = enabled;
                 GameController.Instance.SaveMgr.SaveSettings(GameController.Instance.Settings);
+            }
+        }
+
+        private void GetDisplayedParameters(out int width, out int height, out int mines)
+        {
+            switch (_selectedLevel)
+            {
+                case DifficultyLevel.Beginner:
+                    width = 9; height = 9; mines = 10;
+                    break;
+                case DifficultyLevel.Intermediate:
+                    width = 16; height = 16; mines = 40;
+                    break;
+                case DifficultyLevel.Expert:
+                    width = 30; height = 16; mines = 99;
+                    break;
+                default:
+                    width = _customW; height = _customH; mines = _customM;
+                    break;
             }
         }
 
@@ -270,23 +312,27 @@ namespace Minesweeper.UI
                 _customContainer.SetActive(true); // Keep visible or dim when not custom
             }
 
-            if (_widthInput != null && !_widthInput.isFocused) _widthInput.SetTextWithoutNotify(_customW.ToString());
-            if (_heightInput != null && !_heightInput.isFocused) _heightInput.SetTextWithoutNotify(_customH.ToString());
-            if (_minesInput != null && !_minesInput.isFocused) _minesInput.SetTextWithoutNotify(_customM.ToString());
+            // The steppers always show the parameters that will actually be applied,
+            // i.e. the values of the selected preset (issue #5).
+            GetDisplayedParameters(out int w, out int h, out int m);
 
-            if (_widthSlider != null && (int)_widthSlider.value != _customW) _widthSlider.SetValueWithoutNotify(_customW);
-            if (_heightSlider != null && (int)_heightSlider.value != _customH) _heightSlider.SetValueWithoutNotify(_customH);
-            if (_minesSlider != null && (int)_minesSlider.value != _customM) _minesSlider.SetValueWithoutNotify(_customM);
+            if (_widthInput != null && !_widthInput.isFocused) _widthInput.SetTextWithoutNotify(w.ToString());
+            if (_heightInput != null && !_heightInput.isFocused) _heightInput.SetTextWithoutNotify(h.ToString());
+            if (_minesInput != null && !_minesInput.isFocused) _minesInput.SetTextWithoutNotify(m.ToString());
 
-            int w = _selectedLevel == DifficultyLevel.Beginner ? 9 :
-                    _selectedLevel == DifficultyLevel.Intermediate ? 16 :
-                    _selectedLevel == DifficultyLevel.Expert ? 30 : _customW;
-            int h = _selectedLevel == DifficultyLevel.Beginner ? 9 :
-                    _selectedLevel == DifficultyLevel.Intermediate ? 16 :
-                    _selectedLevel == DifficultyLevel.Expert ? 16 : _customH;
-            int m = _selectedLevel == DifficultyLevel.Beginner ? 10 :
-                    _selectedLevel == DifficultyLevel.Intermediate ? 40 :
-                    _selectedLevel == DifficultyLevel.Expert ? 99 : _customM;
+            if (_widthSlider != null && (int)_widthSlider.value != w) _widthSlider.SetValueWithoutNotify(w);
+            if (_heightSlider != null && (int)_heightSlider.value != h) _heightSlider.SetValueWithoutNotify(h);
+
+            if (_minesSlider != null)
+            {
+                // The mine cap follows the current grid, exactly like GameDifficulty.ValidateCustom.
+                int maxMines = Mathf.Max(10, w * h - 9);
+                if (!Mathf.Approximately(_minesSlider.maxValue, maxMines))
+                {
+                    _minesSlider.maxValue = maxMines;
+                }
+                if ((int)_minesSlider.value != m) _minesSlider.SetValueWithoutNotify(m);
+            }
 
             int totalCells = w * h;
             if (_totalCellsText != null)

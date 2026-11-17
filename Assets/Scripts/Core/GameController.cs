@@ -425,6 +425,30 @@ namespace Minesweeper.Core
                 ResumeGame();
         }
 
+        /// <summary>
+        /// Pauses the round for an informational modal.
+        /// Returns true only when this call actually paused a running game, so the modal
+        /// can restore the very same state on close (issue #4 — a manually paused game
+        /// must stay paused after a modal is dismissed).
+        /// </summary>
+        public bool PauseForModal()
+        {
+            if (Status != GameStatus.InProgress)
+                return false;
+
+            PauseGame();
+            return true;
+        }
+
+        /// <summary>Resumes the round after a modal, but only if that modal paused it.</summary>
+        public void ResumeAfterModal(bool pausedByModal)
+        {
+            if (pausedByModal)
+            {
+                ResumeGame();
+            }
+        }
+
         private void SaveCurrentSession()
         {
             if (Status == GameStatus.InProgress || Status == GameStatus.Paused)

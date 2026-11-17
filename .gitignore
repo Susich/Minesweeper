@@ -41,6 +41,7 @@ crashlytics-build.properties
 *.aab
 *.unitypackage
 *.app
+*.zip
 
 # Editor / build logs
 *.log
