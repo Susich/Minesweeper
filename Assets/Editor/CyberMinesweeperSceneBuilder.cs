@@ -1334,11 +1334,10 @@ namespace Minesweeper.Editor
             hlgHdr.childControlHeight = true;
 
             CreateLabel(headerTable.transform, "РАНГ", 34, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
-            CreateLabel(headerTable.transform, "ИГРОК", 336, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "ИГРОК", 381, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
             CreateLabel(headerTable.transform, "ВРЕМЯ", 100, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineRight;
             CreateLabel(headerTable.transform, "ТОЧНОСТЬ", 104, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
             CreateLabel(headerTable.transform, "ДАТА", 130, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
-            CreateLabel(headerTable.transform, "РЕПЛЕЙ", 45, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
 
             // ---------- Rows ----------
             var rowsCont = CreateUIObject("RowsContainer", panel.transform, Vector2.zero, Vector2.zero, new Vector2(0, 240));

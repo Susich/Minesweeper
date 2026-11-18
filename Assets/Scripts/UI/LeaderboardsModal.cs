@@ -507,28 +507,7 @@ namespace Minesweeper.UI
             timeOfDay.alignment = TextAlignmentOptions.MidlineLeft;
             timeOfDay.rectTransform.sizeDelta = new Vector2(130 * UI_SCALE, 14 * UI_SCALE);
 
-            // 7. Replay ----------------------------------------------------
-            var replayGo = new GameObject("ReplayButton", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-            replayGo.transform.SetParent(rowObj.transform, false);
-            replayGo.GetComponent<RectTransform>().sizeDelta = new Vector2(30 * UI_SCALE, 26 * UI_SCALE);
-            var repLe = replayGo.GetComponent<LayoutElement>();
-            repLe.minWidth = 30 * UI_SCALE; repLe.preferredWidth = 30 * UI_SCALE;
-            repLe.minHeight = 26 * UI_SCALE; repLe.preferredHeight = 26 * UI_SCALE;
-            var repImg = replayGo.GetComponent<Image>();
-            repImg.color = rank == 1 ? new Color(0f, 242f / 255f, 254f / 255f, 0.16f) : ColSurface;
-            replayGo.AddComponent<Button>();
-
-            var repIconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-            repIconGo.transform.SetParent(replayGo.transform, false);
-            var repIconRt = repIconGo.GetComponent<RectTransform>();
-            repIconRt.anchorMin = new Vector2(0.5f, 0.5f);
-            repIconRt.anchorMax = new Vector2(0.5f, 0.5f);
-            repIconRt.sizeDelta = new Vector2(13 * UI_SCALE, 13 * UI_SCALE);
-            repIconRt.anchoredPosition = Vector2.zero;
-            var repIconImg = repIconGo.GetComponent<Image>();
-            repIconImg.sprite = LoadReplaySprite();
-            repIconImg.color = rank == 1 ? ColPrimaryContainer : ColOnSurfaceVariant;
-            repIconImg.raycastTarget = false;
+            // 7. Replay column removed (FR-027)
 
             return rowObj;
         }
