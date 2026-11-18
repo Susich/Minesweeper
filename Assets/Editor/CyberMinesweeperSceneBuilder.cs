@@ -1512,7 +1512,7 @@ namespace Minesweeper.Editor
             CreateBullet(aboutCont.transform, "Учебный проект по дисциплине «Технологии разработки программно-информационных систем»", font, ColOnSurfaceVariant);
             CreateBullet(aboutCont.transform, "Волгоградский государственный технический университет (ВолгГТУ), 2026 г.", font, ColOnSurfaceVariant);
             CreateBullet(aboutCont.transform, "Преподаватель: доцент Рак Д.В.", font, ColOnSurface);
-            CreateBullet(aboutCont.transform, "Команда разработчиков (гр. ИВТ-1):", font, ColPrimaryContainer);
+            CreateBullet(aboutCont.transform, "Команда разработчиков (гр. ПрИн-366):", font, ColPrimaryContainer);
             CreateBullet(aboutCont.transform, "• Тюрин С.С. — Тимлид / Архитектор", font, ColOnSurface);
             CreateBullet(aboutCont.transform, "• Игнатов М.Р. — Frontend-разработчик (Cyberpunk HUD UI)", font, ColOnSurface);
             CreateBullet(aboutCont.transform, "• Сапунков А.Р. — Backend-разработчик (Core / игровая логика)", font, ColOnSurface);
