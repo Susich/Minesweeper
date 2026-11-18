@@ -246,7 +246,7 @@ namespace Minesweeper.UI
                 // Total content must stay within the panel's 1018 px inner width,
                 // otherwise the vertical layout gives the header its preferred
                 // 1044.8 px width, centres it and shifts it off the rows.
-                float[] columnWidths = { 34f, 250f, 100f, 86f, 104f, 130f, 45f };
+                float[] columnWidths = { 34f, 381f, 100f, 104f, 130f };
                 for (int i = 0; i < header.childCount && i < columnWidths.Length; i++)
                 {
                     if (!(header.GetChild(i) is RectTransform column)) continue;
