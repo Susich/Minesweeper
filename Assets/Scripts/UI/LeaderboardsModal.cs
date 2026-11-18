@@ -448,30 +448,7 @@ namespace Minesweeper.UI
             timeTxt.alignment = TextAlignmentOptions.MidlineRight;
 
             // 4. Efficiency (ops / sec) -----------------------------------
-            var effCol = new GameObject("Efficiency", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
-            effCol.transform.SetParent(rowObj.transform, false);
-            effCol.GetComponent<RectTransform>().sizeDelta = new Vector2(86 * UI_SCALE, _rowHeight);
-            var effLe = effCol.GetComponent<LayoutElement>();
-            effLe.minWidth = 86 * UI_SCALE; effLe.preferredWidth = 86 * UI_SCALE;
-            effLe.minHeight = _rowHeight; effLe.preferredHeight = _rowHeight;
-            var effHlg = effCol.GetComponent<VerticalLayoutGroup>();
-            effHlg.spacing = 0 * UI_SCALE;
-            effHlg.childAlignment = TextAnchor.MiddleLeft;
-            effHlg.childControlWidth = true;
-            effHlg.childControlHeight = false;
-            effHlg.childForceExpandHeight = false;
-
-            var effTxt = CreateLabel(effCol.transform, $"{entry.Efficiency:F2}", 86, ColPrimary);
-            effTxt.fontSize = 13 * UI_SCALE;
-            effTxt.fontStyle = FontStyles.Bold;
-            effTxt.alignment = TextAlignmentOptions.MidlineLeft;
-            effTxt.rectTransform.sizeDelta = new Vector2(86 * UI_SCALE, 19 * UI_SCALE);
-
-            var opsTxt = CreateLabel(effCol.transform, $"{GetOpenCellCount(_activeTab)} ops", 86, new Color(148f / 255f, 163f / 255f, 184f / 255f));
-            opsTxt.fontSize = 9 * UI_SCALE;
-            opsTxt.fontStyle = FontStyles.Normal;
-            opsTxt.alignment = TextAlignmentOptions.MidlineLeft;
-            opsTxt.rectTransform.sizeDelta = new Vector2(86 * UI_SCALE, 14 * UI_SCALE);
+            // Efficiency (ops/sec) column was removed (FR-027).
 
             // 5. Accuracy -------------------------------------------------
             var accCol = new GameObject("Accuracy", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
