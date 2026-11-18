@@ -214,7 +214,7 @@ namespace Minesweeper.UI
                     _bestResultText.text = $"ВАШ ЛУЧШИЙ РЕЗУЛЬТАТ: {best.TimeSeconds:000.0}s   [РАНГ #1 — {best.PlayerName}]";
                     if (_bestStatsText != null)
                     {
-                        _bestStatsText.text = $"Точность: {best.Accuracy:F1}%    ЗВУК/С: {best.Efficiency:F2}    Операций: {GetOpenCellCount(_activeTab)}";
+                        _bestStatsText.text = $"Точность: {best.Accuracy:F1}%    Операций: {GetOpenCellCount(_activeTab)}";
                     }
                 }
                 else
@@ -246,6 +246,7 @@ namespace Minesweeper.UI
                 // Total content must stay within the panel's 1018 px inner width,
                 // otherwise the vertical layout gives the header its preferred
                 // 1044.8 px width, centres it and shifts it off the rows.
+                // Rank: 34, Name: 381, Time: 100, Accuracy: 104, Date: 130
                 float[] columnWidths = { 34f, 381f, 100f, 104f, 130f };
                 for (int i = 0; i < header.childCount && i < columnWidths.Length; i++)
                 {
