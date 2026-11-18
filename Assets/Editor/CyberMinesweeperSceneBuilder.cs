@@ -1334,9 +1334,8 @@ namespace Minesweeper.Editor
             hlgHdr.childControlHeight = true;
 
             CreateLabel(headerTable.transform, "РАНГ", 34, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
-            CreateLabel(headerTable.transform, "ИГРОК", 250, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
+            CreateLabel(headerTable.transform, "ИГРОК", 336, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
             CreateLabel(headerTable.transform, "ВРЕМЯ", 100, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineRight;
-            CreateLabel(headerTable.transform, "ЗВУК/С", 86, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
             CreateLabel(headerTable.transform, "ТОЧНОСТЬ", 104, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
             CreateLabel(headerTable.transform, "ДАТА", 130, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
             CreateLabel(headerTable.transform, "РЕПЛЕЙ", 45, ColOnSurfaceVariant, font).alignment = TextAlignmentOptions.MidlineLeft;
@@ -1371,7 +1370,7 @@ namespace Minesweeper.Editor
             var bestSpacer = CreateUIObject("Spacer", bestBanner.transform, Vector2.zero, Vector2.zero, Vector2.zero);
             bestSpacer.AddComponent<LayoutElement>().flexibleWidth = 1f;
 
-            var bestStat = CreateText(bestBanner.transform, "Точность: 98.4%    ЗВУК/С: 4.10", font, 11, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
+            var bestStat = CreateText(bestBanner.transform, "Точность: 98.4%", font, 11, FontStyles.Normal, ColOnSurfaceVariant, tracking: 2);
             bestStat.textWrappingMode = TextWrappingModes.NoWrap;
             bestStat.alignment = TextAlignmentOptions.MidlineRight;
             bestStat.GetComponent<RectTransform>().sizeDelta = new Vector2(280 * UI_SCALE, 24 * UI_SCALE);
